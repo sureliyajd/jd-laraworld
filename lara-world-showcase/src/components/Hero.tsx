@@ -12,7 +12,7 @@ export const Hero = () => {
       </div>
 
       <div className="container relative z-10 mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
+        <div className="mx-auto text-center space-y-8 animate-fade-in">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
             <Code2 className="w-4 h-4 text-primary" />
@@ -41,7 +41,62 @@ export const Hero = () => {
 
           {/* Tech stack badges */}
           <div className="flex flex-wrap justify-center gap-3 pt-8">
-            {["Laravel", "React", "MySQL", "Passport", "Vite"].map((tech) => (
+            {[
+              "Laravel 12",
+              "ReactJS",
+              "Vite",
+              "Tailwind CSS v4",
+              "MySQL",
+              "Eloquent ORM",
+              "RESTful APIs",
+              "Laravel Passport",
+              "OAuth2 Authorization Code with PKCE",
+              "SPA Authentication",
+              "Middleware",
+              "Policies",
+              "Gates",
+              "Form Requests",
+              "Validation Rules",
+              "Route Model Binding",
+              "Resource Controllers",
+              "API Resources",
+              "Seeder & Factories",
+              "Database Migrations",
+              "Soft Deletes",
+              "Eager Loading",
+              "Query Scopes",
+              "Jobs & Queues",
+              "Queue Workers",
+              "Events & Listeners",
+              "Broadcasting",
+              "Laravel Echo",
+              "Notifications",
+              "Mailables",
+              "Markdown Mail Templates",
+              "Mail Preview",
+              "Scheduler",
+              "Cron Jobs",
+              "Custom Artisan Commands",
+              "File Storage",
+              "AWS S3 Integration",
+              "Signed URLs",
+              "Logging",
+              "Custom Log Channels",
+              "Error Handling",
+              "Admin Dashboard",
+              "Role Based Access Control (RBAC)",
+              "Task Management",
+              "Real-Time Updates",
+              "API Playground",
+              "Third-Party Integrations",
+              "Swagger / API Docs",
+              "Docker",
+              "CI/CD",
+              "Unit Testing",
+              "Feature Testing",
+              "Postman / Thunder Client",
+              "Production Ready Setup"
+            ].map((tech) => (
               <span key={tech} className="px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-foreground">
                 {tech}
               </span>

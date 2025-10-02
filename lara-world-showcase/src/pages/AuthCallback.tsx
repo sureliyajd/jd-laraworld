@@ -22,8 +22,8 @@ const AuthCallback = () => {
     if (code) {
       handleAuthCallback(code)
         .then(() => {
-          // Redirect to dashboard on success
-          navigate('/dashboard');
+          // Redirect to portal on success
+          navigate('/portal');
         })
         .catch((error) => {
           console.error('Auth callback error:', error);

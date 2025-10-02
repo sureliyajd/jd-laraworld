@@ -36,8 +36,8 @@ export const useAuth = () => {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       await authService.loginWithPassword(email, password);
       await loadUser();
-      // Redirect to dashboard after successful login
-      window.location.href = '/dashboard';
+      // Redirect to portal after successful login
+      window.location.href = '/portal';
     } catch (error) {
       setAuthState(prev => ({
         ...prev,

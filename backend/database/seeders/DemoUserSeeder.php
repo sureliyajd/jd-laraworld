@@ -13,10 +13,12 @@ class DemoUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Demo User',
-            'email' => 'demo@laraworld.test',
-            'password' => Hash::make('password'),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'demo@laraworld.test'],
+            [
+                'name' => 'Demo User',
+                'password' => Hash::make('password'),
+            ]
+        );
     }
 }

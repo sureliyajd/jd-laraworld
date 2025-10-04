@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, User, Tag, Save, X } from 'lucide-react';
+import { Calendar, Clock, User, Tag, Save, X, Users } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
+import AssignmentModal from './AssignmentModal';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface TaskModalProps {
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSaved }) => {
   const { createTask, updateTask, categories, loading, error } = useTaskService();
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -241,6 +243,22 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSave
           </div>
         </form>
       </DialogContent>
+      
+      {/* Assignment Modal */}
+      {task && (
+        <AssignmentModal
+          isOpen={isAssignmentModalOpen}
+          onClose={() => setIsAssignmentModalOpen(false)}
+          taskId={task.id}
+          taskTitle={task.title}
+          taskCreatorId={task.created_by}
+          onAssignmentChanged={() => {
+            if (onTaskSaved) {
+              onTaskSaved();
+            }
+          }}
+        />
+      )}
     </Dialog>
   );
 };

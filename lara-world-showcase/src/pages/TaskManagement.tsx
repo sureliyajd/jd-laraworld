@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, User, MessageSquare, Paperclip, Plus, Search, Filter, Eye } from 'lucide-react';
+import { Calendar, Clock, User, MessageSquare, Paperclip, Plus, Search, Filter, Eye, Users } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
 import TaskModal from '@/components/TaskModal';
 import TaskDetailModal from '@/components/TaskDetailModal';
@@ -357,6 +357,13 @@ const TaskManagement: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         <span>{task.assignee.name}</span>
+                      </div>
+                    )}
+                    
+                    {task.assignments_count > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>{task.assignments_count} assigned</span>
                       </div>
                     )}
                     

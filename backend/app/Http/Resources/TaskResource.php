@@ -91,6 +91,31 @@ class TaskResource extends JsonResource
             'attachments_count' => $this->when(isset($this->attachments_count), $this->attachments_count),
             'assignments_count' => $this->when(isset($this->assignments_count), $this->assignments_count),
 
+            'assignments' => $this->whenLoaded('assignments', function () {
+                return $this->assignments->map(function ($assignment) {
+                    return [
+                        'id' => $assignment->id,
+                        'role' => $assignment->role,
+                        'role_label' => $assignment->role_label,
+                        'role_color' => $assignment->role_color,
+                        'notes' => $assignment->notes,
+                        'assigned_at' => $assignment->assigned_at?->toISOString(),
+                        'assigned_at_formatted' => $assignment->assigned_at?->format('M j, Y H:i'),
+                        'is_active' => $assignment->isActive(),
+                        'user' => $assignment->user ? [
+                            'id' => $assignment->user->id,
+                            'name' => $assignment->user->name,
+                            'email' => $assignment->user->email,
+                        ] : null,
+                        'assigner' => $assignment->assigner ? [
+                            'id' => $assignment->assigner->id,
+                            'name' => $assignment->assigner->name,
+                            'email' => $assignment->assigner->email,
+                        ] : null,
+                    ];
+                });
+            }),
+
             'comments' => $this->whenLoaded('comments', function () {
                 return TaskCommentResource::collection($this->comments);
             }),
@@ -119,12 +144,30 @@ class TaskResource extends JsonResource
 
             'assigned_users' => $this->whenLoaded('assignedUsers', function () {
                 return $this->assignedUsers->map(function ($user) {
+                    $assignedAt = $user->pivot->assigned_at;
+                    
+                    // Handle datetime conversion safely
+                    if ($assignedAt) {
+                        try {
+                            // If it's already a Carbon instance, use it directly
+                            if ($assignedAt instanceof \Carbon\Carbon) {
+                                $assignedAt = $assignedAt->toISOString();
+                            } else {
+                                // If it's a string, parse it
+                                $assignedAt = \Carbon\Carbon::parse($assignedAt)->toISOString();
+                            }
+                        } catch (\Exception $e) {
+                            // If parsing fails, set to null
+                            $assignedAt = null;
+                        }
+                    }
+                    
                     return [
                         'id' => $user->id,
                         'name' => $user->name,
                         'email' => $user->email,
                         'role' => $user->pivot->role,
-                        'assigned_at' => $user->pivot->assigned_at->toISOString(),
+                        'assigned_at' => $assignedAt,
                     ];
                 });
             }),

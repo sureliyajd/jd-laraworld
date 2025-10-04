@@ -20,9 +20,11 @@ import {
   Play,
   XCircle,
   Plus,
-  Send
+  Send,
+  Users
 } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
+import AssignmentModal from './AssignmentModal';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -37,6 +39,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
   const [task, setTask] = useState<any>(null);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && taskId) {
@@ -195,6 +198,64 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                         </Badge>
                       ))}
                     </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Assignments */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Assignments ({task.assignments?.length || 0})
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAssignmentModalOpen(true)}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Assignments
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {task.assignments && task.assignments.length > 0 ? (
+                  <div className="space-y-3">
+                    {task.assignments.map((assignment: any) => (
+                      <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                            <span className="text-gray-600 font-medium text-sm">
+                              {assignment.user?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{assignment.user?.name}</p>
+                            <p className="text-sm text-gray-600">{assignment.user?.email}</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">
+                          {assignment.role_label}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p>No users assigned to this task yet.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAssignmentModalOpen(true)}
+                      className="mt-4"
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Assign Users
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -410,6 +471,23 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
           </div>
         </div>
       </DialogContent>
+      
+      {/* Assignment Modal */}
+      {task && (
+        <AssignmentModal
+          isOpen={isAssignmentModalOpen}
+          onClose={() => setIsAssignmentModalOpen(false)}
+          taskId={task.id}
+          taskTitle={task.title}
+          taskCreatorId={task.created_by}
+          onAssignmentChanged={() => {
+            loadTask(); // Reload task to get updated assignments
+            if (onTaskUpdated) {
+              onTaskUpdated();
+            }
+          }}
+        />
+      )}
     </Dialog>
   );
 };

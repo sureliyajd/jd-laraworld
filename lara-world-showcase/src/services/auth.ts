@@ -2,7 +2,7 @@
 import { generateCodeVerifier, generateCodeChallenge } from '@/utils/pkce';
 import { AUTH_CONFIG } from '@/config/auth';
 
-export interface User {
+export interface AuthUser {
   id: number;
   name: string;
   email: string;
@@ -150,7 +150,7 @@ class AuthService {
     return tokens;
   }
 
-  public async getCurrentUser(): Promise<User> {
+  public async getCurrentUser(): Promise<AuthUser> {
     if (!this.accessToken) {
       throw new Error('No access token available');
     }

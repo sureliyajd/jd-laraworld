@@ -11,6 +11,7 @@ import PortalLayout from "./components/PortalLayout";
 import AuthCallback from "./pages/AuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import TaskManagement from "./pages/TaskManagement";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
           >
             <Route index element={<PortalDashboard />} />
             <Route path="tasks" element={<TaskManagement />} />
+            <Route path="users" element={<UserManagement />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -30,6 +30,11 @@ const navigationItems = [
     icon: CheckSquare,
     badge: "New",
   },
+  {
+    title: "User Management",
+    url: "/portal/users",
+    icon: Users,
+  },
 ];
 
 const PortalLayout = () => {

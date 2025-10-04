@@ -23,8 +23,20 @@ class TaskController extends Controller
      */
     public function index(Request $request): TaskCollection
     {
-        $query = Task::with(['category', 'creator', 'assignee', 'parent', 'subtasks'])
-            ->withCount(['comments', 'attachments', 'assignments']);
+        $query = Task::with([
+            'category', 
+            'creator', 
+            'assignee', 
+            'parent', 
+            'subtasks', 
+            'assignments' => function ($query) {
+                $query->whereNull('unassigned_at')->with('user');
+            }, 
+            'assignedUsers'
+        ])
+        ->withCount(['comments', 'attachments', 'assignments' => function ($query) {
+            $query->whereNull('unassigned_at');
+        }]);
 
         // Apply filters
         if ($request->has('status')) {
@@ -153,7 +165,10 @@ class TaskController extends Controller
             'subtasks',
             'comments.user',
             'attachments.uploader',
-            'assignments.user',
+            'assignments' => function ($query) {
+                $query->whereNull('unassigned_at')
+                      ->with(['user', 'assigner']);
+            },
             'assignedUsers'
         ]);
 
@@ -213,14 +228,14 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task): JsonResponse
+    public function destroy(Request $request, Task $task): JsonResponse
     {
         $this->authorize('delete', $task);
 
         try {
             $taskTitle = $task->title;
             $taskId = $task->id;
-            $userId = auth()->id();
+            $userId = $request->user()->id;
 
             $task->delete();
 
@@ -237,7 +252,7 @@ class TaskController extends Controller
         } catch (\Exception $e) {
             Log::error('Task deletion failed', [
                 'task_id' => $task->id,
-                'user_id' => auth()->id(),
+                'user_id' => $request->user()->id,
                 'error' => $e->getMessage(),
             ]);
 

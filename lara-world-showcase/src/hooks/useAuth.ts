@@ -1,9 +1,9 @@
 // useAuth.ts
 import { useState, useEffect } from 'react';
-import { authService, User } from '@/services/auth';
+import { authService, AuthUser } from '@/services/auth';
 
 export interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;

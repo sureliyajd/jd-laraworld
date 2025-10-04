@@ -129,7 +129,8 @@ class Task extends Model
     {
         return $this->belongsToMany(User::class, 'task_assignments', 'task_id', 'user_id')
             ->withPivot('role', 'assigned_at', 'assigned_by', 'notes')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->wherePivotNull('unassigned_at'); // Only include active assignments
     }
 
     /**

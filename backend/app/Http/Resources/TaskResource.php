@@ -126,6 +126,7 @@ class TaskResource extends JsonResource
                         'id' => $attachment->id,
                         'filename' => $attachment->filename,
                         'original_filename' => $attachment->original_filename,
+                        'description' => $attachment->description,
                         'mime_type' => $attachment->mime_type,
                         'file_size' => $attachment->file_size,
                         'human_file_size' => $attachment->human_file_size,
@@ -133,7 +134,7 @@ class TaskResource extends JsonResource
                         'is_document' => $attachment->is_document,
                         'icon_class' => $attachment->icon_class,
                         'url' => $attachment->url,
-                        'uploaded_by' => [
+                        'uploader' => [
                             'id' => $attachment->uploader->id,
                             'name' => $attachment->uploader->name,
                         ],

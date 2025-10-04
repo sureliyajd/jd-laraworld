@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, User, Tag, Save, X, Users } from 'lucide-react';
+import { Calendar, Clock, User, Tag, Save, X, Users, Paperclip } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
 import AssignmentModal from './AssignmentModal';
+import AttachmentModal from './AttachmentModal';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface TaskModalProps {
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSaved }) => {
   const { createTask, updateTask, categories, loading, error } = useTaskService();
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -92,22 +94,46 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSave
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {task ? (
-              <>
-                <Clock className="h-5 w-5" />
-                Edit Task
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                Create New Task
-              </>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                {task ? (
+                  <>
+                    <Clock className="h-5 w-5" />
+                    Edit Task
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5" />
+                    Create New Task
+                  </>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {task ? 'Update the task details below.' : 'Fill in the details to create a new task.'}
+              </DialogDescription>
+            </div>
+            {task && (
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAssignmentModalOpen(true)}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Assignments
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAttachmentModalOpen(true)}
+                >
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  Attachments
+                </Button>
+              </div>
             )}
-          </DialogTitle>
-          <DialogDescription>
-            {task ? 'Update the task details below.' : 'Fill in the details to create a new task.'}
-          </DialogDescription>
+          </div>
         </DialogHeader>
 
         {error && (
@@ -253,6 +279,21 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSave
           taskTitle={task.title}
           taskCreatorId={task.created_by}
           onAssignmentChanged={() => {
+            if (onTaskSaved) {
+              onTaskSaved();
+            }
+          }}
+        />
+      )}
+      
+      {/* Attachment Modal */}
+      {task && (
+        <AttachmentModal
+          isOpen={isAttachmentModalOpen}
+          onClose={() => setIsAttachmentModalOpen(false)}
+          taskId={task.id}
+          taskTitle={task.title}
+          onAttachmentChanged={() => {
             if (onTaskSaved) {
               onTaskSaved();
             }

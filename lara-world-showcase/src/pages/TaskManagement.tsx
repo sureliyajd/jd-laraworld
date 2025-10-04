@@ -377,7 +377,7 @@ const TaskManagement: React.FC = () => {
                     {task.attachments_count > 0 && (
                       <div className="flex items-center gap-1">
                         <Paperclip className="h-4 w-4" />
-                        <span>{task.attachments_count}</span>
+                        <span>{task.attachments_count} files</span>
                       </div>
                     )}
                   </div>

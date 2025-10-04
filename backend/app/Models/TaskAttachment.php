@@ -25,8 +25,8 @@ class TaskAttachment extends Model
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
         'file_size' => 'integer',
+        'is_public' => 'boolean',
     ];
 
     /**
@@ -46,14 +46,26 @@ class TaskAttachment extends Model
     }
 
     /**
-     * Get the full file URL
+     * Get the direct file URL for viewing/preview
      */
     public function getUrlAttribute(): string
     {
-        if ($this->is_public) {
-            return Storage::disk($this->disk)->url($this->file_path);
-        }
+        return asset('storage/' . $this->file_path);
+    }
 
+    /**
+     * Get the preview URL (same as direct URL for public files)
+     */
+    public function getPreviewUrlAttribute(): string
+    {
+        return asset('storage/' . $this->file_path);
+    }
+
+    /**
+     * Get the download URL (forces download)
+     */
+    public function getDownloadUrlAttribute(): string
+    {
         return route('api.attachments.download', $this->id);
     }
 
@@ -160,13 +172,6 @@ class TaskAttachment extends Model
         });
     }
 
-    /**
-     * Scope to get only public attachments
-     */
-    public function scopePublic($query)
-    {
-        return $query->where('is_public', true);
-    }
 
     /**
      * Scope to get attachments by file type

@@ -21,10 +21,18 @@ import {
   XCircle,
   Plus,
   Send,
-  Users
+  Users,
+  File,
+  FileText,
+  Image as ImageIcon,
+  Eye,
+  ExternalLink,
+  Download,
+  Maximize2
 } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
 import AssignmentModal from './AssignmentModal';
+import AttachmentModal from './AttachmentModal';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -40,6 +48,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<any>(null);
 
   useEffect(() => {
     if (isOpen && taskId) {
@@ -72,6 +82,21 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
       await loadTask();
       onTaskUpdated?.();
     }
+  };
+
+  const handlePreviewAttachment = (attachment: any) => {
+    setPreviewAttachment(attachment);
+  };
+
+  const handleOpenAttachment = (attachment: any) => {
+    // Open file directly using the direct URL
+    window.open(attachment.url, '_blank');
+  };
+
+  const getAttachmentIcon = (attachment: any) => {
+    if (attachment.is_image) return <ImageIcon className="h-4 w-4 text-blue-500" />;
+    if (attachment.is_document) return <FileText className="h-4 w-4 text-green-500" />;
+    return <File className="h-4 w-4 text-gray-500" />;
   };
 
   const handleDeleteTask = async () => {
@@ -255,6 +280,127 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                     >
                       <Users className="h-4 w-4 mr-2" />
                       Assign Users
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Attachments */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Paperclip className="h-5 w-5" />
+                    Attachments ({task.attachments?.length || 0})
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAttachmentModalOpen(true)}
+                  >
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    Manage Attachments
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {task.attachments && task.attachments.length > 0 ? (
+                  <div className="space-y-3">
+                    {task.attachments.map((attachment: any) => (
+                      <div key={attachment.id} className="flex items-start justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          {/* Thumbnail/Icon */}
+                          <div className="relative flex-shrink-0">
+                            {attachment.is_image ? (
+                              <div className="relative group">
+                                <img
+                                  src={attachment.url}
+                                  alt={attachment.original_filename}
+                                  className="w-10 h-10 object-cover rounded border cursor-pointer"
+                                  onClick={() => handlePreviewAttachment(attachment)}
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                                <div className="hidden w-10 h-10 bg-gray-100 rounded border flex items-center justify-center">
+                                  {getAttachmentIcon(attachment)}
+                                </div>
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                  <Maximize2 className="h-3 w-3 text-white" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 bg-gray-100 rounded border flex items-center justify-center">
+                                {getAttachmentIcon(attachment)}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <p 
+                              className="font-medium truncate cursor-pointer hover:text-blue-600 text-sm"
+                              onClick={() => handleOpenAttachment(attachment)}
+                              title={attachment.original_filename}
+                            >
+                              {attachment.original_filename}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <Badge variant="outline" className="text-xs">
+                                {attachment.human_file_size}
+                              </Badge>
+                              {attachment.description && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  Note
+                                </Badge>
+                              )}
+                            </div>
+                            {attachment.description && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{attachment.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                          {attachment.is_image && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePreviewAttachment(attachment)}
+                              title="Preview"
+                              className="h-7 w-7 p-0"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenAttachment(attachment)}
+                            title="Open file"
+                            className="h-7 w-7 p-0"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <Paperclip className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p>No attachments for this task yet.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAttachmentModalOpen(true)}
+                      className="mt-4"
+                    >
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      Upload Files
                     </Button>
                   </div>
                 )}
@@ -458,7 +604,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                   <div className="space-y-2">
                     {task.attachments.map((attachment: any) => (
                       <div key={attachment.id} className="flex items-center gap-2 p-2 border rounded">
-                        <span className="text-sm">{attachment.original_filename}</span>
+                        <span className="text-sm truncate max-w-xs" title={attachment.original_filename}>{attachment.original_filename}</span>
                         <Badge variant="outline" className="text-xs">
                           {attachment.human_file_size}
                         </Badge>
@@ -487,6 +633,104 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
             }
           }}
         />
+      )}
+      
+      {/* Attachment Modal */}
+      {task && (
+        <AttachmentModal
+          isOpen={isAttachmentModalOpen}
+          onClose={() => setIsAttachmentModalOpen(false)}
+          taskId={task.id}
+          taskTitle={task.title}
+          onAttachmentChanged={() => {
+            loadTask(); // Reload task to get updated attachments
+            if (onTaskUpdated) {
+              onTaskUpdated();
+            }
+          }}
+        />
+      )}
+      
+      {/* Attachment Preview Modal */}
+      {previewAttachment && (
+        <Dialog open={!!previewAttachment} onOpenChange={() => setPreviewAttachment(null)}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Preview: {previewAttachment.original_filename}
+              </DialogTitle>
+              {previewAttachment.description && (
+                <DialogDescription className="text-base text-gray-700 bg-gray-50 p-3 rounded border">
+                  {previewAttachment.description}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {previewAttachment.is_image ? (
+                <div className="flex justify-center">
+                  <img
+                    src={previewAttachment.url}
+                    alt={previewAttachment.original_filename}
+                    className="max-w-full max-h-[60vh] object-contain rounded border"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="hidden flex flex-col items-center justify-center p-8 text-gray-500">
+                    <ImageIcon className="h-16 w-16 mb-4" />
+                    <p>Preview not available</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                  <div className="mb-4">
+                    {getAttachmentIcon(previewAttachment)}
+                  </div>
+                  <p className="text-lg mb-2">Preview not available for this file type</p>
+                  <p className="text-sm mb-4">
+                    {previewAttachment.human_file_size} • {previewAttachment.mime_type}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleOpenAttachment(previewAttachment)}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open File
+                  </Button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">File Size:</span> {previewAttachment.human_file_size}
+                </div>
+                <div>
+                  <span className="font-medium">File Type:</span> {previewAttachment.mime_type}
+                </div>
+                <div>
+                  <span className="font-medium">Uploaded:</span> {new Date(previewAttachment.created_at).toLocaleString()}
+                </div>
+                <div>
+                  <span className="font-medium">Uploaded by:</span> {previewAttachment.uploader?.name}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => handleOpenAttachment(previewAttachment)}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open File
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </Dialog>
   );

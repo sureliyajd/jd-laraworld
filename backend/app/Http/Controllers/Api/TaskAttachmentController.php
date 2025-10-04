@@ -95,23 +95,27 @@ class TaskAttachmentController extends Controller
         try {
             DB::beginTransaction();
 
+
             $file = $request->file('file');
             $originalFilename = $file->getClientOriginalName();
             $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('task-attachments', $filename, 'local');
+            $path = $file->storeAs('task-attachments', $filename, 'public');
 
-            $attachment = TaskAttachment::create([
+            $attachmentData = [
                 'filename' => $filename,
                 'original_filename' => $originalFilename,
                 'mime_type' => $file->getMimeType(),
                 'file_size' => $file->getSize(),
                 'file_path' => $path,
-                'disk' => 'local',
+                'disk' => 'public',
                 'description' => $request->description,
-                'is_public' => $request->boolean('is_public', false),
+                'is_public' => $request->boolean('is_public', true), // Default to true since we're using public storage
                 'task_id' => $request->task_id,
                 'uploaded_by' => $request->user()->id,
-            ]);
+            ];
+
+
+            $attachment = TaskAttachment::create($attachmentData);
 
             // Load relationships for response
             $attachment->load(['uploader', 'task']);
@@ -178,7 +182,28 @@ class TaskAttachmentController extends Controller
         try {
             DB::beginTransaction();
 
-            $taskAttachment->update($request->only(['description', 'is_public']));
+            // Debug: Log the update data
+            Log::info('Task attachment update request', [
+                'attachment_id' => $taskAttachment->id,
+                'current_description' => $taskAttachment->description,
+                'new_description' => $request->description,
+                'request_data' => $request->all(),
+                'content_type' => $request->header('Content-Type'),
+                'method' => $request->method(),
+                'json_data' => $request->json()->all(),
+            ]);
+
+            // Handle both JSON and form data
+            $updateData = [];
+            if ($request->header('Content-Type') === 'application/json') {
+                $jsonData = $request->json()->all();
+                $updateData = array_intersect_key($jsonData, array_flip(['description', 'is_public']));
+            } else {
+                $updateData = $request->only(['description', 'is_public']);
+            }
+            Log::info('Updating attachment with data', $updateData);
+
+            $taskAttachment->update($updateData);
 
             // Load relationships for response
             $taskAttachment->load(['uploader', 'task']);
@@ -214,12 +239,12 @@ class TaskAttachmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TaskAttachment $taskAttachment): JsonResponse
+    public function destroy(Request $request, TaskAttachment $taskAttachment): JsonResponse
     {
         try {
             $attachmentId = $taskAttachment->id;
             $filename = $taskAttachment->filename;
-            $userId = auth()->id();
+            $userId = $request->user()->id;
 
             // Delete the physical file
             if (Storage::disk($taskAttachment->disk)->exists($taskAttachment->file_path)) {
@@ -241,7 +266,7 @@ class TaskAttachmentController extends Controller
         } catch (\Exception $e) {
             Log::error('Task attachment deletion failed', [
                 'attachment_id' => $taskAttachment->id,
-                'user_id' => auth()->id(),
+                'user_id' => $request->user()->id,
                 'error' => $e->getMessage(),
             ]);
 
@@ -253,17 +278,33 @@ class TaskAttachmentController extends Controller
     }
 
     /**
-     * Download the attachment file.
+     * Download or serve the attachment file.
      */
-    public function download(TaskAttachment $attachment): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function download(TaskAttachment $attachment, Request $request)
     {
         if (!Storage::disk($attachment->disk)->exists($attachment->file_path)) {
             abort(404, 'File not found');
         }
 
-        return Storage::disk($attachment->disk)->download(
-            $attachment->file_path,
-            $attachment->original_filename
-        );
+        // Check if this is a preview request (for images)
+        $preview = $request->query('preview', false);
+        $isImage = str_starts_with($attachment->mime_type, 'image/');
+        
+        if ($preview && $isImage) {
+            // Serve image for preview with proper content type
+            $file = Storage::disk($attachment->disk)->get($attachment->file_path);
+            
+            return response($file, 200, [
+                'Content-Type' => $attachment->mime_type,
+                'Content-Disposition' => 'inline; filename="' . $attachment->original_filename . '"',
+            ]);
+        }
+
+        // Force download for non-preview requests or non-images
+        $filePath = Storage::disk($attachment->disk)->path($attachment->file_path);
+        
+        return response()->download($filePath, $attachment->original_filename, [
+            'Content-Type' => $attachment->mime_type,
+        ]);
     }
 }

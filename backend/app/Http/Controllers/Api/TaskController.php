@@ -10,10 +10,15 @@ use App\Http\Resources\TaskResource;
 use App\Http\Resources\TaskCollection;
 use App\Models\Task;
 use App\Models\TaskComment;
+use App\Jobs\ProcessTaskUpdate;
+use App\Jobs\SendTaskNotification;
+use App\Events\TaskUpdated;
+use App\Notifications\TaskUpdatedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class TaskController extends Controller
 {
@@ -123,6 +128,9 @@ class TaskController extends Controller
 
             DB::commit();
 
+            // Dispatch job for task processing
+            ProcessTaskUpdate::dispatch($task, $request->user(), ['action' => 'created']);
+
             Log::info('Task created', [
                 'task_id' => $task->id,
                 'user_id' => $request->user()->id,
@@ -194,14 +202,31 @@ class TaskController extends Controller
             $this->createSystemCommentsForChanges($task, $request->user(), $originalData);
 
             // Load relationships for response
-            $task->load(['category', 'creator', 'assignee', 'parent']);
+            $task->load(['category', 'creator', 'assignee', 'parent', 'assignedUsers']);
 
             DB::commit();
+
+            // Get changes for broadcasting and notifications
+            $changes = array_diff_assoc($task->toArray(), $originalData);
+
+            // Dispatch job for task processing
+            ProcessTaskUpdate::dispatch($task, $request->user(), $changes);
+
+            // Broadcast task updated event
+            broadcast(new TaskUpdated($task, $request->user(), $changes));
+
+            // Send notifications to assigned users
+            if ($task->assignedUsers->isNotEmpty()) {
+                Notification::send(
+                    $task->assignedUsers,
+                    new TaskUpdatedNotification($task, $request->user(), $changes)
+                );
+            }
 
             Log::info('Task updated', [
                 'task_id' => $task->id,
                 'user_id' => $request->user()->id,
-                'changes' => array_diff_assoc($task->toArray(), $originalData),
+                'changes' => $changes,
             ]);
 
             return response()->json([

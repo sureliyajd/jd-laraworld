@@ -16,6 +16,8 @@ import {
   Users
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBell } from "./NotificationBell";
+import { NotificationProvider } from "../contexts/NotificationContext";
 
 const navigationItems = [
   {
@@ -37,7 +39,7 @@ const navigationItems = [
   },
 ];
 
-const PortalLayout = () => {
+const PortalLayoutContent = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -125,9 +127,7 @@ const PortalLayout = () => {
               </div>
 
               <div className="flex items-center space-x-4">
-                <Button variant="ghost" size="sm">
-                  <Bell className="h-4 w-4" />
-                </Button>
+                <NotificationBell userId={user?.id?.toString() || ''} />
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="text-xs">
                     Portal Demo
@@ -146,6 +146,20 @@ const PortalLayout = () => {
         </div>
       </div>
     </SidebarProvider>
+  );
+};
+
+const PortalLayout = () => {
+  const { user } = useAuth();
+  
+  if (!user?.id) {
+    return null; // Or redirect to login
+  }
+
+  return (
+    <NotificationProvider userId={user.id.toString()}>
+      <PortalLayoutContent />
+    </NotificationProvider>
   );
 };
 

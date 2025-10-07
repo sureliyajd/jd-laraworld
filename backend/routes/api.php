@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\CategoryController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\TaskCommentController;
 use App\Http\Controllers\Api\TaskAttachmentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TaskAssignmentController;
+use App\Http\Controllers\Api\NotificationController;
 
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -52,4 +54,15 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/tasks/{task}/assignments', [TaskAssignmentController::class, 'getTaskAssignments'])->name('api.tasks.assignments');
     Route::get('/users/{user}/assignments', [TaskAssignmentController::class, 'getUserAssignments'])->name('api.users.assignments');
     Route::get('/task-assignments/statistics/overview', [TaskAssignmentController::class, 'statistics'])->name('api.assignments.statistics');
+    
+    // Notification API Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('api.notifications.index');
+    Route::get('/notifications/statistics', [NotificationController::class, 'statistics'])->name('api.notifications.statistics');
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('api.notifications.read');
+    Route::patch('/notifications/mark-multiple-read', [NotificationController::class, 'markMultipleAsRead'])->name('api.notifications.mark-multiple-read');
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('api.notifications.mark-all-read');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('api.notifications.destroy');
 });
+
+// Broadcasting auth route for SPA using Passport bearer token
+Broadcast::routes(['middleware' => ['auth:api']]);

@@ -7,9 +7,14 @@ use App\Http\Resources\TaskAssignmentResource;
 use App\Models\TaskAssignment;
 use App\Models\Task;
 use App\Models\User;
+use App\Jobs\SendTaskAssignedEmail;
+use App\Jobs\SendTaskNotification;
+use App\Events\TaskAssigned;
+use App\Notifications\TaskAssignedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 
 class TaskAssignmentController extends Controller
@@ -99,8 +104,23 @@ class TaskAssignmentController extends Controller
             ]);
         }
 
+        // Load relationships for broadcasting and notifications
+        $assignment->load(['task', 'user', 'assigner']);
+
+        // Dispatch job for sending email
+        SendTaskAssignedEmail::dispatch($assignment->task, $assignment->user, $assignment->assigner);
+
+        // Dispatch job for sending notification
+        SendTaskNotification::dispatch($assignment->task, $assignment->user, 'assigned');
+
+        // Broadcast task assigned event
+        broadcast(new TaskAssigned($assignment->task, $assignment->user, $assignment->assigner));
+
+        // Send notification to assigned user
+        $assignment->user->notify(new TaskAssignedNotification($assignment->task, $assignment->assigner));
+
         return response()->json([
-            'data' => new TaskAssignmentResource($assignment->load(['task', 'user', 'assigner'])),
+            'data' => new TaskAssignmentResource($assignment),
             'message' => 'User assigned to task successfully'
         ], 201);
     }

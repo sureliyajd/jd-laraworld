@@ -357,6 +357,43 @@ class TaskService {
     return await this.updateTask(id, { priority }) !== null;
   }
 
+  /**
+   * Add a task to the list (for real-time updates when task is assigned)
+   * Fetches full task details from API
+   */
+  async addTaskFromEvent(taskId: number): Promise<Task | null> {
+    try {
+      const task = await this.fetchTask(taskId);
+      if (task) {
+        // Check if task already exists in the list
+        const existingIndex = this.tasks.findIndex(t => t.id === taskId);
+        if (existingIndex === -1) {
+          // Add new task to the beginning of the list
+          this.tasks = [task, ...this.tasks];
+          this.notifyListeners();
+        }
+        return task;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to add task from event:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Update a task from real-time event data
+   * Updates only the fields provided in the event
+   */
+  updateTaskFromEvent(taskId: number, eventData: Partial<Task>): void {
+    const index = this.tasks.findIndex(t => t.id === taskId);
+    if (index !== -1) {
+      // Merge the event data with existing task
+      this.tasks[index] = { ...this.tasks[index], ...eventData };
+      this.notifyListeners();
+    }
+  }
+
   async initialize() {
     if (!this.hasInitialized) {
       this.hasInitialized = true;

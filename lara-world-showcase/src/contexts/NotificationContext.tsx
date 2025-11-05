@@ -31,15 +31,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Real-time connection status
-  const { isConnected } = useRealtimeNotifications({ 
-    userId,
-    onNotificationReceived: () => {
-      // When new notification arrives, refresh stats
-      refreshStats();
-    }
-  });
-
   // Centralized stats refresh function
   const refreshStats = useCallback(async () => {
     try {
@@ -53,6 +44,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
       setLoading(false);
     }
   }, []);
+
+  // Real-time connection status
+  const { isConnected } = useRealtimeNotifications({ 
+    userId,
+    callbacks: {
+      // When new notification arrives, refresh stats to update badge counter
+      onNotificationReceived: () => {
+        refreshStats();
+      },
+    }
+  });
 
   // Load initial stats on mount
   useEffect(() => {

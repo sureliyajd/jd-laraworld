@@ -4,8 +4,8 @@ export interface TaskAttachment {
   original_filename: string;
   mime_type: string;
   file_size: number;
-  file_path: string;
-  disk: string;
+  file_path?: string;
+  disk?: string;
   description?: string;
   task_id: number;
   uploaded_by: number;
@@ -13,15 +13,15 @@ export interface TaskAttachment {
   updated_at: string;
   
   // Computed attributes
-  url: string;
+  url?: string;
   preview_url?: string;
   download_url?: string;
-  extension: string;
+  extension?: string;
   human_file_size: string;
   is_image: boolean;
   is_document: boolean;
   is_archive: boolean;
-  icon_class: string;
+  icon_class?: string;
   
   // Relationships
   task?: {

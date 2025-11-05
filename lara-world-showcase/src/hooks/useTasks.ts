@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { AUTH_CONFIG } from '@/config/auth';
 
 interface Task {
   id: number;
@@ -99,7 +100,7 @@ interface UpdateTaskData {
   assigned_to?: number;
 }
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = AUTH_CONFIG.API_BASE_URL;
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -235,7 +236,7 @@ export const useTasks = () => {
 
   const updateTask = async (id: number, taskData: UpdateTaskData): Promise<Task | null> => {
     try {
-      setLoading(true);
+      // Keep page rendered; don't toggle global loading for minor updates
       setError(null);
 
       const response = await fetch(`${API_BASE}/tasks/${id}`, {
@@ -250,13 +251,21 @@ export const useTasks = () => {
       }
 
       const data = await response.json();
-      await fetchTasks(); // Refresh the list
-      return data.data;
+      const updated: Task = data.data;
+      // Optimistically update local tasks to avoid a full list refetch
+      setTasks(prev => {
+        const idx = prev.findIndex(t => t.id === id);
+        if (idx === -1) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...updated };
+        return copy;
+      });
+      return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update task');
       return null;
     } finally {
-      setLoading(false);
+      // no-op
     }
   };
 

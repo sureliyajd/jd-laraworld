@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAttachmentService } from '@/hooks/useAttachmentService';
 import type { TaskAttachment, CreateAttachmentData, UpdateAttachmentData } from '@/types/attachment';
+import { AUTH_CONFIG } from '@/config/auth';
 
 interface AttachmentModalProps {
   isOpen: boolean;
@@ -61,6 +62,30 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
   const [previewAttachment, setPreviewAttachment] = useState<TaskAttachment | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Utility function to construct proper file URLs
+  const getFileUrl = (attachment: TaskAttachment): string => {
+    // Use API_BASE from config (without /api suffix)
+    const apiBase = AUTH_CONFIG.API_BASE;
+    
+    // First try the direct URL from the backend
+    if (attachment.url) {
+      // If it's already a full URL, use it as is
+      if (attachment.url.startsWith('http')) {
+        return attachment.url;
+      }
+      // If it's a relative URL, construct the full URL
+      return attachment.url.startsWith('/') ? `${apiBase}${attachment.url}` : `${apiBase}/${attachment.url}`;
+    }
+    
+    // Fallback: try to construct URL from file_path if available
+    if (attachment.file_path) {
+      return `${apiBase}/storage/${attachment.file_path}`;
+    }
+    
+    // Last resort: use the download endpoint
+    return `${AUTH_CONFIG.API_BASE_URL}/task-attachments/${attachment.id}/download`;
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -200,8 +225,28 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
   };
 
   const handleOpenFile = (attachment: TaskAttachment) => {
-    // Open file directly using the direct URL
-    window.open(attachment.url, '_blank');
+    const fileUrl = getFileUrl(attachment);
+
+    console.log('Opening file:', {
+      filename: attachment.original_filename,
+      url: attachment.url,
+      file_path: attachment.file_path,
+      constructed_url: fileUrl,
+      attachment: attachment
+    });
+
+    // Always prefer the direct/public file URL when available
+    const newWindow = window.open(fileUrl, '_blank');
+    if (!newWindow) {
+      console.warn('Failed to open file in new window, attempting fallback');
+      // Fallback to API download preview endpoint (may require auth)
+      const downloadPreviewUrl = `${AUTH_CONFIG.API_BASE_URL}/task-attachments/${attachment.id}/download?preview=1`;
+      const fallbackWindow = window.open(downloadPreviewUrl, '_blank');
+      if (!fallbackWindow) {
+        console.warn('Failed to open fallback preview, attempting direct download');
+        handleDownload(attachment);
+      }
+    }
   };
 
   if (loading) {
@@ -247,117 +292,130 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
           ) : (
             <div className="space-y-3">
               {attachments.map((attachment) => (
-                <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-3 flex-1">
-                    {/* Thumbnail/Icon */}
-                    <div className="relative">
-                      {attachment.is_image ? (
-                        <div className="relative group">
-                          <img
-                            src={attachment.url}
-                            alt={attachment.original_filename}
-                            className="w-12 h-12 object-cover rounded border cursor-pointer"
-                            onClick={() => handlePreview(attachment)}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                          <div className="hidden w-12 h-12 bg-gray-100 rounded border flex items-center justify-center">
-                            {getAttachmentIcon(attachment)}
-                          </div>
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <Maximize2 className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center">
+                <div key={attachment.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  {/* Thumbnail/Icon */}
+                  <div className="flex-shrink-0">
+                    {attachment.is_image ? (
+                      <div className="relative group">
+                        <img
+                          src={getFileUrl(attachment)}
+                          alt={attachment.original_filename}
+                          className="w-16 h-16 object-cover rounded-lg border cursor-pointer shadow-sm"
+                          onClick={() => handlePreview(attachment)}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden w-16 h-16 bg-gray-100 rounded-lg border flex items-center justify-center">
                           {getAttachmentIcon(attachment)}
                         </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="mb-1">
-                        <p 
-                          className="font-medium truncate cursor-pointer hover:text-blue-600 text-sm"
-                          onClick={() => handleOpenFile(attachment)}
-                          title={attachment.original_filename}
-                        >
-                          {attachment.original_filename}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <Badge variant="outline" className="text-xs">
-                            {attachment.human_file_size}
-                          </Badge>
-                          {attachment.description && (
-                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
-                              <FileText className="h-3 w-3 mr-1" />
-                              Note
-                            </Badge>
-                          )}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <Maximize2 className="h-5 w-5 text-white" />
                         </div>
                       </div>
-                      
-                      {attachment.description && (
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{attachment.description}</p>
-                      )}
-                      
-                      <p className="text-xs text-gray-400 mt-1">
-                        Uploaded {new Date(attachment.created_at).toLocaleDateString()} by {attachment.uploader?.name}
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border flex items-center justify-center shadow-sm">
+                        {getAttachmentIcon(attachment)}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* File Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-2">
+                      <h4 
+                        className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors truncate text-base"
+                        onClick={() => handleOpenFile(attachment)}
+                        title={attachment.original_filename}
+                      >
+                        {attachment.original_filename}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs font-medium">
+                          {attachment.human_file_size}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {attachment.mime_type.split('/')[1]?.toUpperCase() || 'FILE'}
+                        </Badge>
+                        {attachment.description && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            <FileText className="h-3 w-3 mr-1" />
+                            Has Note
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {attachment.description && (
+                      <div className="mb-2">
+                        <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded border-l-2 border-blue-200 line-clamp-2">
+                          {attachment.description}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-500">
+                        Uploaded {new Date(attachment.created_at).toLocaleDateString()} by {attachment.uploader?.name || 'Unknown'}
                       </p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-1 flex-shrink-0">
-                    {attachment.is_image && (
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-1">
+                      {attachment.is_image && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePreview(attachment)}
+                          title="Preview Image"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handlePreview(attachment)}
-                        title="Preview"
-                        className="h-8 w-8 p-0"
+                        onClick={() => handleOpenFile(attachment)}
+                        title="Open File"
+                        className="h-7 w-7 p-0"
                       >
-                        <Eye className="h-3 w-3" />
+                        <ExternalLink className="h-3 w-3" />
                       </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenFile(attachment)}
-                      title="Open file"
-                      className="h-8 w-8 p-0"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(attachment)}
-                      title="Download"
-                      className="h-8 w-8 p-0"
-                    >
-                      <Download className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => startEdit(attachment)}
-                      title="Edit"
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteAttachment(attachment)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(attachment)}
+                        title="Download"
+                        className="h-7 w-7 p-0"
+                      >
+                        <Download className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => startEdit(attachment)}
+                        title="Edit Description"
+                        className="h-7 w-7 p-0"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteAttachment(attachment)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -507,7 +565,7 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
               {previewAttachment.is_image ? (
                 <div className="flex justify-center">
                   <img
-                    src={previewAttachment.url}
+                    src={getFileUrl(previewAttachment)}
                     alt={previewAttachment.original_filename}
                     className="max-w-full max-h-[60vh] object-contain rounded border"
                     onError={(e) => {

@@ -48,9 +48,9 @@ class SetupAuth extends Command
                 $this->info('✓ Laravel Passport is already installed');
             }
 
-            // Create PKCE client for frontend
+            // Create OAuth2 client for frontend
             $this->newLine();
-            $this->info('Creating OAuth2 PKCE client for frontend...');
+            $this->info('Creating OAuth2 client for frontend...');
             
             $clientRepository = new ClientRepository();
             $frontendUrl = $this->option('frontend-url');
@@ -84,7 +84,7 @@ class SetupAuth extends Command
                     'updated_at' => now(),
                 ]);
                 
-                $this->info('✓ OAuth2 PKCE client created successfully!');
+                $this->info('✓ OAuth2 client created successfully!');
             }
 
             $this->newLine();

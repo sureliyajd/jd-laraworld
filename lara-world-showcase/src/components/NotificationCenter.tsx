@@ -8,7 +8,7 @@ import { Separator } from './ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { notificationService, Notification, NotificationFilters } from '../services/notificationService';
-import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
+import { useNotificationContext } from '../contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationCenterProps {
@@ -30,18 +30,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     per_page: 20,
   });
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
-  const [stats, setStats] = useState<{
-    total: number;
-    unread: number;
-    by_type: Record<string, number>;
-    recent: number;
-  } | null>(null);
 
-  // Use real-time notifications hook
-  const { unreadCount, markAsRead, markAllAsRead, refreshNotifications } = useRealtimeNotifications({
-    userId,
-    enabled: isOpen,
-  });
+  // Use shared notification context to keep badge in sync
+  const { unreadCount, totalCount, stats, markAsRead, markAllAsRead, deleteNotification } = useNotificationContext();
 
   // Load notifications
   const loadNotifications = async () => {
@@ -60,21 +51,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     }
   };
 
-  // Load statistics
-  const loadStats = async () => {
-    try {
-      const statsData = await notificationService.getStatistics();
-      setStats(statsData);
-    } catch (error) {
-      console.error('Failed to load notification statistics:', error);
-    }
-  };
-
   // Load notifications on mount and when filters change
   useEffect(() => {
     if (isOpen) {
       loadNotifications();
-      loadStats();
     }
   }, [isOpen, filters, activeTab]);
 
@@ -84,7 +64,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
     const interval = setInterval(() => {
       loadNotifications();
-      loadStats();
     }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
@@ -95,34 +74,58 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     if (notification.read_at) return;
     
     try {
-      await markAsRead(notification.id);
+      // Update local state optimistically for immediate UI feedback
       setNotifications(prev =>
         prev.map(n => n.id === notification.id ? { ...n, read_at: new Date().toISOString() } : n)
       );
+      
+      // Call the context function which will update the badge counter
+      await markAsRead(notification.id);
+      
+      // Reload notifications to ensure consistency
+      loadNotifications();
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      // Revert optimistic update on error
+      loadNotifications();
     }
   };
 
   // Handle mark all as read
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
+      // Update local state optimistically for immediate UI feedback
       setNotifications(prev =>
         prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
       );
+      
+      // Call the context function which will update the badge counter
+      await markAllAsRead();
+      
+      // Reload notifications to ensure consistency
+      loadNotifications();
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
+      // Revert optimistic update on error
+      loadNotifications();
     }
   };
 
   // Handle delete notification
   const handleDeleteNotification = async (notificationId: string) => {
     try {
-      await notificationService.deleteNotification(notificationId);
+      // Update local state optimistically for immediate UI feedback
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      // Call the context function which will update the badge counter
+      await deleteNotification(notificationId);
+      
+      // Reload notifications to ensure consistency
+      loadNotifications();
     } catch (error) {
       console.error('Failed to delete notification:', error);
+      // Revert optimistic update on error
+      loadNotifications();
     }
   };
 
@@ -169,21 +172,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           <div className="flex items-center space-x-2">
             <Bell className="h-5 w-5" />
             <CardTitle>Notifications</CardTitle>
-            {unreadCount > 0 && (
-              <Badge variant="destructive">{unreadCount}</Badge>
-            )}
-            {stats && (
-              <div className="flex items-center space-x-2 ml-2">
-                <Badge variant="outline" className="text-xs">
-                  Total: {stats.total}
-                </Badge>
-                {stats.recent > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    Recent: {stats.recent}
-                  </Badge>
-                )}
-              </div>
-            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -202,83 +190,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Statistics Overview */}
-          {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-                <div className="text-xs text-gray-600">Total</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{stats.unread}</div>
-                <div className="text-xs text-gray-600">Unread</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.recent}</div>
-                <div className="text-xs text-gray-600">Recent (7d)</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {Object.keys(stats.by_type).length}
-                </div>
-                <div className="text-xs text-gray-600">Types</div>
-              </div>
-            </div>
-          )}
-
-          {/* Type Breakdown */}
-          {stats && Object.keys(stats.by_type).length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">By Type</h4>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(stats.by_type).map(([type, count]) => (
-                  <Badge key={type} variant="outline" className="text-xs">
-                    {type.replace('_', ' ')}: {count}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Filters */}
-          <div className="flex items-center space-x-2">
-            <Select
-              value={filters.type || 'all'}
-              onValueChange={(value) =>
-                setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))
-              }
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="task_assigned">Task Assigned</SelectItem>
-                <SelectItem value="task_updated">Task Updated</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={filters.sort_by || 'created_at'}
-              onValueChange={(value) =>
-                setFilters(prev => ({ ...prev, sort_by: value }))
-              }
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at">Date</SelectItem>
-                <SelectItem value="type">Type</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'unread')}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="all">
-                All {stats && `(${stats.total})`}
+                All ({totalCount})
               </TabsTrigger>
               <TabsTrigger value="unread">
                 Unread ({unreadCount})
@@ -286,7 +202,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-4">
-              <div className="h-[400px] max-h-[50vh] overflow-y-auto border rounded-md p-4">
+              <div className="max-h-[300px]  overflow-y-auto border rounded-md">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -296,7 +212,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                     No notifications found
                   </div>
                 ) : (
-                  <div className="space-y-3 pb-4">
+                  <div className="space-y-3 p-4">
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}

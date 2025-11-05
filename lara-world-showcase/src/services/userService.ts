@@ -6,6 +6,7 @@ import {
   UserFilters, 
   UserListResponse 
 } from '@/types/user';
+import { AUTH_CONFIG } from '@/config/auth';
 
 type Listener = () => void;
 
@@ -17,7 +18,7 @@ class UserService {
   private usersRequest: Promise<any> | null = null;
   private hasInitialized = false;
 
-  private readonly API_BASE = 'http://localhost:8000/api';
+  private readonly API_BASE = AUTH_CONFIG.API_BASE_URL;
 
   private getAuthHeaders() {
     const token = localStorage.getItem('access_token');

@@ -1,6 +1,6 @@
 # Backend Authentication Setup
 
-This document provides a complete guide for setting up the Laravel backend authentication system to work with the frontend OAuth2 PKCE implementation.
+This document provides a complete guide for setting up the Laravel backend authentication system to work with the frontend Laravel Passport OAuth2 implementation.
 
 ## Quick Setup
 
@@ -12,7 +12,7 @@ php artisan auth:setup
 
 This will:
 - Install Laravel Passport if not already installed
-- Create an OAuth2 PKCE client for the frontend
+- Create an OAuth2 client for the frontend
 - Display the credentials needed for frontend configuration
 
 ## Manual Setup

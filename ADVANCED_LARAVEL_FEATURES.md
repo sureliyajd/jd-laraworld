@@ -17,7 +17,8 @@ This document showcases the implementation of advanced Laravel capabilities in t
 - **Event Classes**:
   - `TaskAssigned`: Broadcasts when a task is assigned to a user
   - `TaskUpdated`: Broadcasts when a task is updated
-- **Private Channels**: Events broadcast to user-specific and task-specific channels
+- **Private Channels**: Events broadcast to user-specific private channels (`user.{id}`)
+- **Authorization**: Broadcasting auth endpoint protected via API auth (`auth:api`), requires Bearer token
 - **Real-time Data**: Events include relevant task and user information
 
 ### 3. Notifications System
@@ -34,6 +35,7 @@ This document showcases the implementation of advanced Laravel capabilities in t
 - **Notification Center**: Complete notification management UI
 - **Toast Notifications**: Real-time toast alerts for new events
 - **Context Provider**: Global notification state management
+ - **Demo Mode**: If Pusher credentials are not configured, the app runs without real-time and logs guidance to enable it
 
 ## 📁 File Structure
 
@@ -51,10 +53,14 @@ backend/
 │   ├── Notifications/
 │   │   ├── TaskAssignedNotification.php
 │   │   └── TaskUpdatedNotification.php
+│   ├── Providers/
+│   │   └── BroadcastServiceProvider.php
 │   └── Http/Controllers/Api/
 │       └── NotificationController.php
 ├── config/
 │   └── broadcasting.php
+├── routes/
+│   └── channels.php
 └── database/migrations/
     └── create_notifications_table.php
 ```
@@ -88,9 +94,11 @@ PUSHER_APP_CLUSTER=mt1
 # React Frontend
 VITE_PUSHER_APP_KEY=your-app-key
 VITE_PUSHER_APP_CLUSTER=mt1
-VITE_PUSHER_HOST=ws.pusher.com
-VITE_PUSHER_PORT=80
-VITE_PUSHER_SCHEME=https
+
+# Frontend -> Backend API base URLs
+# e.g. http://localhost:8001 and http://localhost:8001/api
+VITE_API_BASE=http://localhost:8001
+VITE_API_BASE_ENDPOINT=http://localhost:8001/api
 ```
 
 ## 🚀 Usage
@@ -113,7 +121,11 @@ cd lara-world-showcase
 npm run dev
 ```
 
-### 4. Test the Implementation
+### 4. Authenticate (Required for API & Broadcasting)
+- Login via the frontend to obtain an access token (Laravel Passport)
+- The frontend attaches `Authorization: Bearer <token>` to API and broadcasting auth requests
+
+### 5. Test the Implementation
 ```bash
 cd backend
 php demo-queue-test.php
@@ -125,20 +137,23 @@ php demo-queue-test.php
 - `GET /api/notifications` - List notifications
 - `GET /api/notifications/statistics` - Get notification stats
 - `PATCH /api/notifications/{id}/read` - Mark as read
+- `PATCH /api/notifications/mark-multiple-read` - Mark multiple notifications as read
 - `PATCH /api/notifications/mark-all-read` - Mark all as read
 - `DELETE /api/notifications/{id}` - Delete notification
+
+All endpoints require `Authorization: Bearer <token>`.
 
 ## 🔄 Workflow
 
 ### When a Task is Assigned:
 1. **Job Dispatch**: `SendTaskAssignedEmail` job queued
-2. **Event Broadcast**: `TaskAssigned` event broadcast to user channel
+2. **Event Broadcast**: `TaskAssigned` event broadcast to private channel `user.{id}` (event `task.assigned`)
 3. **Notification**: Database notification created
 4. **Real-time Update**: React frontend receives live notification
 
 ### When a Task is Updated:
 1. **Job Dispatch**: `ProcessTaskUpdate` job queued
-2. **Event Broadcast**: `TaskUpdated` event broadcast to task and user channels
+2. **Event Broadcast**: `TaskUpdated` event broadcast to private channel `user.{id}` (event `task.updated`)
 3. **Notification**: Database notification sent to assigned users
 4. **Real-time Update**: React frontend shows live updates
 
@@ -176,5 +191,6 @@ php demo-queue-test.php
 - Check `notifications` table for user notifications
 - Monitor real-time connection status in browser console
 - Check Laravel logs for job processing
+  - Browser console includes `[RT]` diagnostics for connection and subscription events
 
 This implementation demonstrates Laravel's powerful queue system, real-time broadcasting capabilities, and comprehensive notification management - all integrated seamlessly with a modern React frontend.

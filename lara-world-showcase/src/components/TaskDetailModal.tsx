@@ -43,7 +43,7 @@ interface TaskDetailModalProps {
 }
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, taskId, onTaskUpdated, onEditTask }) => {
-  const { fetchTask, updateTask, deleteTask, addComment, loading, error } = useTaskService();
+  const { fetchTask, updateTaskStatus, updateTaskPriority, deleteTask, addComment, loading, error } = useTaskService();
   const [task, setTask] = useState<any>(null);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -66,21 +66,20 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
 
   const handleStatusChange = async (newStatus: string) => {
     if (!task) return;
-    
-    const success = await updateTask(task.id, { status: newStatus });
-    if (success) {
+    const updated = await updateTaskStatus(task.id, newStatus);
+    if (updated) {
+      //setTask((prev: any) => ({ ...(prev || {}), ...updated }));
       await loadTask();
-      onTaskUpdated?.();
+      // No extra refetch or parent refresh needed (store already updated)
     }
   };
 
   const handlePriorityChange = async (newPriority: string) => {
     if (!task) return;
-    
-    const success = await updateTask(task.id, { priority: newPriority });
-    if (success) {
+    const updated = await updateTaskPriority(task.id, newPriority);
+    if (updated) {
+      //setTask((prev: any) => ({ ...(prev || {}), ...updated }));
       await loadTask();
-      onTaskUpdated?.();
     }
   };
 
@@ -155,6 +154,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {/* Accessibility: provide hidden title/description for screen readers */}
+          <DialogHeader>
+            <DialogTitle className="sr-only">Loading task</DialogTitle>
+            <DialogDescription className="sr-only">Please wait while the task loads.</DialogDescription>
+          </DialogHeader>
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>

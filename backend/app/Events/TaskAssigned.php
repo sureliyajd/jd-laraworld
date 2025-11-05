@@ -34,7 +34,7 @@ class TaskAssigned implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel('user.' . $this->assignedUser->id),
-            new PrivateChannel('task.' . $this->task->id),
+            //new PrivateChannel('task.' . $this->task->id),
         ];
     }
 

@@ -1,3 +1,5 @@
+import { AUTH_CONFIG } from '@/config/auth';
+
 interface Task {
   id: number;
   title: string;
@@ -109,7 +111,7 @@ class TaskService {
   private categoriesRequest: Promise<any> | null = null;
   private hasInitialized = false;
 
-  private readonly API_BASE = 'http://localhost:8000/api';
+  private readonly API_BASE = AUTH_CONFIG.API_BASE_URL;
 
   private getAuthHeaders() {
     const token = localStorage.getItem('access_token');
@@ -266,9 +268,8 @@ class TaskService {
 
   async updateTask(id: number, taskData: UpdateTaskData): Promise<Task | null> {
     try {
-      this.loading = true;
+      // Do not toggle global loading for minor updates to avoid unmounting pages
       this.error = null;
-      this.notifyListeners();
 
       const response = await fetch(`${this.API_BASE}/tasks/${id}`, {
         method: 'PUT',
@@ -282,15 +283,19 @@ class TaskService {
       }
 
       const data = await response.json();
-      // Refresh tasks list
-      await this.fetchTasks();
-      return data.data;
+      const updated: Task = data.data;
+      // Optimistically update in-memory tasks to avoid full list refetch
+      const index = this.tasks.findIndex(t => t.id === id);
+      if (index !== -1) {
+        this.tasks[index] = { ...this.tasks[index], ...updated };
+      }
+      this.notifyListeners();
+      return updated;
     } catch (err) {
       this.error = err instanceof Error ? err.message : 'Failed to update task';
       throw err;
     } finally {
-      this.loading = false;
-      this.notifyListeners();
+      // No global loading change; listeners were notified after applying the update
     }
   }
 

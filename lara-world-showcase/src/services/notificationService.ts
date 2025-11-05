@@ -1,9 +1,10 @@
 // API configuration
-const API_BASE = 'http://localhost:8000/api';
+import { AUTH_CONFIG } from '../config/auth';
+const API_BASE = AUTH_CONFIG.API_BASE_URL;
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
   return {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

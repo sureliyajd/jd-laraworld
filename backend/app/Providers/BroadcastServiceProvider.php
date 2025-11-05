@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Broadcast;
+use Log;
 
 class BroadcastServiceProvider extends ServiceProvider
 {

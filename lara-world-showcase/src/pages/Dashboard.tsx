@@ -100,7 +100,7 @@ const Dashboard = () => {
               Welcome back, {user.name}!
             </h2>
             <p className="text-muted-foreground">
-              You have successfully authenticated using OAuth2 PKCE flow.
+              You have successfully authenticated using Laravel Passport OAuth2.
             </p>
           </div>
 
@@ -143,7 +143,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="space-y-2">
                   <Badge variant="default" className="text-xs">
-                    OAuth2 PKCE
+                    Laravel Passport OAuth2
                   </Badge>
                   <p className="text-sm text-muted-foreground">
                     Secure authentication flow completed successfully.
@@ -175,21 +175,21 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle>Demo Features</CardTitle>
               <CardDescription>
-                This dashboard demonstrates successful OAuth2 PKCE authentication integration.
+                This dashboard demonstrates successful Laravel Passport OAuth2 authentication integration.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border border-border rounded-lg">
-                  <h4 className="font-medium mb-2">✅ PKCE Authentication</h4>
+                  <h4 className="font-medium mb-2">✅ OAuth2 Authentication</h4>
                   <p className="text-sm text-muted-foreground">
-                    Secure OAuth2 flow with PKCE (Proof Key for Code Exchange) implemented.
+                    Secure OAuth2 authentication using Laravel Passport token-based authentication.
                   </p>
                 </div>
                 <div className="p-4 border border-border rounded-lg">
-                  <h4 className="font-medium mb-2">✅ Laravel Backend</h4>
+                  <h4 className="font-medium mb-2">✅ Laravel Passport</h4>
                   <p className="text-sm text-muted-foreground">
-                    Successfully integrated with Laravel Passport OAuth2 server.
+                    Successfully integrated with Laravel Passport OAuth2 server for secure token management.
                   </p>
                 </div>
                 <div className="p-4 border border-border rounded-lg">

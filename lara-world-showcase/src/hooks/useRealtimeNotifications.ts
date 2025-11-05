@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { toast } from 'sonner';
 import { AUTH_CONFIG } from '../config/auth';
-import { notificationService, Notification } from '../services/notificationService';
 
 // Extend Window interface for Echo
 declare global {
@@ -17,58 +16,26 @@ interface UseRealtimeNotificationsProps {
   userId: string;
   enabled?: boolean;
   onNotificationClick?: () => void;
+  onNotificationReceived?: () => void;
 }
 
 export const useRealtimeNotifications = ({ 
   userId, 
   enabled = true,
-  onNotificationClick
+  onNotificationClick,
+  onNotificationReceived
 }: UseRealtimeNotificationsProps) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
-  const previousUnreadRef = useRef(0);
   const onClickRef = useRef(onNotificationClick);
+  const onReceivedRef = useRef(onNotificationReceived);
 
   useEffect(() => {
     onClickRef.current = onNotificationClick;
   }, [onNotificationClick]);
 
-
-  // Refresh notifications from server
-  const refreshNotifications = useCallback(async () => {
-    try {
-      const stats = await notificationService.getStatistics();
-      const previousCount = previousUnreadRef.current;
-      setUnreadCount(stats.unread);
-      previousUnreadRef.current = stats.unread;
-      
-      // Show toast notification for new unread count
-      if (stats.unread > previousCount) {
-        const newCount = stats.unread - previousCount;
-        toast.success('New Notification', {
-          description: `You have ${newCount} new notification${newCount > 1 ? 's' : ''}`,
-          action: {
-            label: 'View',
-            onClick: () => {
-              if (onClickRef.current) {
-                onClickRef.current();
-              }
-            },
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Failed to refresh notifications:', error);
-    }
-  }, []);
-
-  // Load initial notifications
   useEffect(() => {
-    if (userId) {
-      refreshNotifications();
-    }
-  }, [userId]);
+    onReceivedRef.current = onNotificationReceived;
+  }, [onNotificationReceived]);
 
   // Initialize Echo (Demo Mode - No Pusher Required)
   useEffect(() => {
@@ -83,9 +50,11 @@ export const useRealtimeNotifications = ({
       window.Pusher = Pusher;
 
       // Initialize Echo - let Pusher compute correct ws host via cluster
-      const apiBase = AUTH_CONFIG.API_BASE_URL; // e.g., http://127.0.0.1:8000/api
-      const backendBase = apiBase.replace(/\/api\/?$/, '');
+      // Use API_BASE from config (without /api suffix)
+      const backendBase = AUTH_CONFIG.API_BASE;
       const accessToken = localStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
+
+      // Initialize Echo with Pusher configuration
 
       window.Echo = new Echo({
         broadcaster: 'pusher',
@@ -100,6 +69,34 @@ export const useRealtimeNotifications = ({
           },
         },
       });
+
+      // Attach connection diagnostics
+      try {
+        const pusherConn = (window.Echo as any)?.connector?.pusher?.connection;
+        if (pusherConn) {
+          pusherConn.bind('state_change', (states: any) => {
+            console.log('[RT] Connection state change', states);
+          });
+          pusherConn.bind('connected', () => {
+            const socketId = (window.Echo as any)?.connector?.pusher?.connection?.socket_id;
+            console.log('[RT] Connected to Pusher', { socketId });
+          });
+          pusherConn.bind('disconnected', () => {
+            console.log('[RT] Disconnected from Pusher');
+          });
+          pusherConn.bind('unavailable', () => {
+            console.warn('[RT] Pusher connection unavailable');
+          });
+          pusherConn.bind('failed', () => {
+            console.error('[RT] Pusher connection failed');
+          });
+          pusherConn.bind('error', (err: any) => {
+            console.error('[RT] Pusher connection error', err);
+          });
+        }
+      } catch (e) {
+        console.warn('[RT] Failed wiring connection diagnostics', e);
+      }
     } else {
       // Demo mode - simulate connection
       console.log('🔔 Demo Mode: Real-time notifications disabled (Pusher not configured)');
@@ -108,47 +105,67 @@ export const useRealtimeNotifications = ({
     }
 
     if (hasPusherConfig) {
-      let subscribed = false;
       const subscribeToChannels = () => {
-        const channel = window.Echo.private(`user.${userId}`);
+        const channelName = `user.${userId}`;
+        const channel = window.Echo.private(channelName);
 
-        channel.listen('task.assigned', (data: any) => {
-          console.log('Task assigned notification received:', data);
+        // Log subscription outcomes
+        try {
+          const underlying = (channel as any)?.subscription;
+          if (underlying?.bind) {
+            underlying.bind('pusher:subscription_succeeded', () => {
+              console.log('[RT] Subscription succeeded', { channel: channelName });
+            });
+            underlying.bind('pusher:subscription_error', (status: any) => {
+              console.error('[RT] Subscription error', { channel: channelName, status });
+            });
+          }
+        } catch (e) {
+          console.warn('[RT] Unable to bind subscription events', e);
+        }
+
+        channel.listen('.task.assigned', (data: any) => {
           toast.success('New Task Assignment', {
             description: data.message,
             action: {
               label: 'View',
               onClick: () => {
-                if (onNotificationClick) {
-                  onNotificationClick();
+                if (onClickRef.current) {
+                  onClickRef.current();
                 }
               },
             },
           });
-          refreshNotifications();
+          // Notify context to refresh stats
+          if (onReceivedRef.current) {
+            onReceivedRef.current();
+          }
         });
 
-        channel.listen('task.updated', (data: any) => {
-          console.log('Task updated notification received:', data);
+        channel.listen('.task.updated', (data: any) => {
           toast.info('Task Updated', {
             description: data.message,
             action: {
               label: 'View',
               onClick: () => {
-                if (onNotificationClick) {
-                  onNotificationClick();
+                if (onClickRef.current) {
+                  onClickRef.current();
                 }
               },
             },
           });
-          refreshNotifications();
+          // Notify context to refresh stats
+          if (onReceivedRef.current) {
+            onReceivedRef.current();
+          }
         });
       };
 
       // Listen for connection events
+      let subscribed = false;
+      
       window.Echo.connector.pusher.connection.bind('connected', () => {
         setIsConnected(true);
-        console.log('Connected to Pusher');
         if (!subscribed) {
           subscribeToChannels();
           subscribed = true;
@@ -157,7 +174,6 @@ export const useRealtimeNotifications = ({
 
       window.Echo.connector.pusher.connection.bind('disconnected', () => {
         setIsConnected(false);
-        console.log('Disconnected from Pusher');
         if (subscribed) {
           try {
             window.Echo.leave(`user.${userId}`);
@@ -166,7 +182,7 @@ export const useRealtimeNotifications = ({
         }
       });
 
-      // If already connected (fast reconnect), subscribe immediately
+      // If already connected, subscribe immediately
       const currentState = window.Echo.connector.pusher.connection.state;
       if (currentState === 'connected' && !subscribed) {
         subscribeToChannels();
@@ -185,32 +201,7 @@ export const useRealtimeNotifications = ({
   }, [userId, enabled]);
 
 
-  // Mark notification as read
-  const markAsRead = useCallback(async (notificationId: string) => {
-    try {
-      await notificationService.markAsRead(notificationId);
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
-  }, []);
-
-  // Mark all notifications as read
-  const markAllAsRead = useCallback(async () => {
-    try {
-      await notificationService.markAllAsRead();
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
-    }
-  }, []);
-
   return {
-    notifications,
-    unreadCount,
     isConnected,
-    markAsRead,
-    markAllAsRead,
-    refreshNotifications,
   };
 };

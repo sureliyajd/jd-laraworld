@@ -7,6 +7,7 @@ import {
   AssignmentStatistics, 
   AssignmentListResponse 
 } from '@/types/assignment';
+import { AUTH_CONFIG } from '@/config/auth';
 
 type Listener = () => void;
 
@@ -17,7 +18,7 @@ class AssignmentService {
   private listeners: Set<Listener> = new Set();
   private assignmentsRequest: Promise<any> | null = null;
 
-  private readonly API_BASE = 'http://localhost:8000/api';
+  private readonly API_BASE = AUTH_CONFIG.API_BASE_URL;
 
   private getAuthHeaders() {
     const token = localStorage.getItem('access_token');

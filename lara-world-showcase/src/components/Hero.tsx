@@ -50,7 +50,7 @@ export const Hero = () => {
               "Eloquent ORM",
               "RESTful APIs",
               "Laravel Passport",
-              "OAuth2 Authorization Code with PKCE",
+              "OAuth2 Authentication",
               "SPA Authentication",
               "Middleware",
               "Policies",

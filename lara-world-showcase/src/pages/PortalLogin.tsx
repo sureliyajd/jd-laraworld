@@ -95,7 +95,7 @@ const PortalLogin = () => {
         {/* Info notice */}
         <div className="text-center text-sm text-muted-foreground space-y-2">
           <p>This is a demonstration portal showcasing Laravel authentication</p>
-          <p className="text-xs">Secure PKCE flow with email/password authentication</p>
+          <p className="text-xs">Secure OAuth2 flow with Laravel Passport token-based authentication</p>
         </div>
       </div>
     </div>

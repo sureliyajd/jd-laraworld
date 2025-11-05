@@ -1,14 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { notificationService, NotificationStats } from '../services/notificationService';
 
 interface NotificationContextType {
   unreadCount: number;
+  totalCount: number;
   stats: NotificationStats | null;
   isConnected: boolean;
-  refreshNotifications: () => Promise<void>;
+  refreshStats: () => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (notificationId: string) => Promise<void>;
   openNotificationCenter: () => void;
 }
 
@@ -23,50 +25,93 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   children,
   userId,
 }) => {
+  // Centralized state - single source of truth
   const [stats, setStats] = useState<NotificationStats | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
 
-  const {
-    unreadCount,
-    isConnected,
-    markAsRead,
-    markAllAsRead,
-    refreshNotifications,
-  } = useRealtimeNotifications({ 
+  // Real-time connection status
+  const { isConnected } = useRealtimeNotifications({ 
     userId,
-    onNotificationClick: () => setIsNotificationCenterOpen(true)
+    onNotificationReceived: () => {
+      // When new notification arrives, refresh stats
+      refreshStats();
+    }
   });
 
-  // Load initial notification stats
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const notificationStats = await notificationService.getStatistics();
-        setStats(notificationStats);
-      } catch (error) {
-        console.error('Failed to load notification stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (userId) {
-      loadStats();
+  // Centralized stats refresh function
+  const refreshStats = useCallback(async () => {
+    try {
+      const notificationStats = await notificationService.getStatistics();
+      setStats(notificationStats);
+      setUnreadCount(notificationStats.unread);
+      setTotalCount(notificationStats.total);
+    } catch (error) {
+      console.error('Failed to load notification stats:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [userId]);
+  }, []);
 
-  // No need to sync unread count - we use the real-time hook's unreadCount directly
+  // Load initial stats on mount
+  useEffect(() => {
+    if (userId) {
+      refreshStats();
+    }
+  }, [userId, refreshStats]);
 
+  // Mark single notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
+    try {
+      await notificationService.markAsRead(notificationId);
+      // Update local state immediately for instant feedback
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      // Refresh stats to ensure accuracy
+      await refreshStats();
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      // Revert on error
+      await refreshStats();
+    }
+  }, [refreshStats]);
+
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await notificationService.markAllAsRead();
+      // Update local state immediately for instant feedback
+      setUnreadCount(0);
+      // Refresh stats to ensure accuracy
+      await refreshStats();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+      // Revert on error
+      await refreshStats();
+    }
+  }, [refreshStats]);
+
+  // Delete notification
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    try {
+      await notificationService.deleteNotification(notificationId);
+      // Refresh stats to get accurate counts
+      await refreshStats();
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  }, [refreshStats]);
 
   const contextValue: NotificationContextType = {
     unreadCount,
+    totalCount,
     stats,
     isConnected,
-    refreshNotifications,
+    refreshStats,
     markAsRead,
     markAllAsRead,
-    openNotificationCenter: () => setIsNotificationCenterOpen(true),
+    deleteNotification,
+    openNotificationCenter: () => {},
   };
 
   return (

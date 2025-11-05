@@ -206,8 +206,8 @@ class TaskController extends Controller
 
             DB::commit();
 
-            // Get changes for broadcasting and notifications
-            $changes = array_diff_assoc($task->toArray(), $originalData);
+            // Get changes for broadcasting and notifications (avoid array_diff on nested arrays)
+            $changes = $task->getChanges();
 
             // Dispatch job for task processing
             ProcessTaskUpdate::dispatch($task, $request->user(), $changes);
@@ -325,7 +325,8 @@ class TaskController extends Controller
      */
     private function createSystemCommentsForChanges(Task $task, $user, array $originalData): void
     {
-        $changes = array_diff_assoc($task->toArray(), $originalData);
+        // Use Eloquent's tracked changes to avoid array to string conversion on nested arrays
+        $changes = $task->getChanges();
 
         foreach ($changes as $field => $newValue) {
             $oldValue = $originalData[$field] ?? null;

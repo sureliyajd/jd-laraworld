@@ -95,7 +95,7 @@ const PortalDashboard = () => {
             </div>
             <div className="text-center p-4 border rounded-lg">
               <h4 className="font-semibold">Authentication</h4>
-              <p className="text-sm text-muted-foreground">OAuth2 PKCE</p>
+              <p className="text-sm text-muted-foreground">Laravel Passport OAuth2</p>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <h4 className="font-semibold">UI Framework</h4>

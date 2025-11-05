@@ -13,7 +13,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) =>
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const { unreadCount } = useNotificationContext();
 
-
   return (
     <>
       <Button

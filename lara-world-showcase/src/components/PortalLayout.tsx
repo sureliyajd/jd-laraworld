@@ -13,36 +13,67 @@ import {
   CheckSquare,
   FileText,
   Settings,
-  Users
+  Users,
+  Mail,
+  Server,
+  Activity
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import { NotificationBell } from "./NotificationBell";
 import { NotificationProvider } from "../contexts/NotificationContext";
 
-const navigationItems = [
-  {
-    title: "Overview",
-    url: "/portal",
-    icon: LayoutDashboard,
-    isActive: true,
-  },
-  {
-    title: "Task Management",
-    url: "/portal/tasks",
-    icon: CheckSquare,
-    badge: "New",
-  },
-  {
-    title: "User Management",
-    url: "/portal/users",
-    icon: Users,
-  },
-];
-
 const PortalLayoutContent = () => {
   const { user, logout } = useAuth();
+  const { can } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Define navigation items with permission requirements
+  const navigationItems = [
+    {
+      title: "Overview",
+      url: "/portal",
+      icon: LayoutDashboard,
+      isActive: true,
+      requiredPermission: null, // Always visible
+    },
+    {
+      title: "Task Management",
+      url: "/portal/tasks",
+      icon: CheckSquare,
+      badge: "New",
+      requiredPermission: () => can.viewAssignedTasks(), // Visible if can view any tasks
+    },
+    {
+      title: "User Management",
+      url: "/portal/users",
+      icon: Users,
+      requiredPermission: () => can.viewUsers(), // Visible if can view users
+    },
+    {
+      title: "Mail Command Center",
+      url: "/portal/mail",
+      icon: Mail,
+      requiredPermission: () => can.viewEmailLogs(), // Visible if can view email logs
+    },
+    {
+      title: "Infrastructure Gallery",
+      url: "/portal/devops",
+      icon: Server,
+      requiredPermission: null, // Always visible (or add specific permission)
+    },
+    {
+      title: "Log Horizon",
+      url: "/portal/logs",
+      icon: Activity,
+      requiredPermission: null, // Always visible (or add specific permission)
+    },
+  ].filter(item => {
+    // Filter out items that user doesn't have permission to see
+    if (item.requiredPermission === null) return true;
+    return item.requiredPermission();
+  });
 
   const handleLogout = () => {
     logout();

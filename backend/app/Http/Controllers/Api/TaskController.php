@@ -19,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class TaskController extends Controller
 {
@@ -28,6 +29,13 @@ class TaskController extends Controller
      */
     public function index(Request $request): TaskCollection
     {
+        $user = $request->user();
+        
+        // Check permission to view tasks
+        if (!$user->checkPermission('view all tasks') && !$user->checkPermission('view assigned tasks')) {
+            throw new AuthorizationException('You do not have permission to view tasks');
+        }
+        
         $query = Task::with([
             'category', 
             'creator', 
@@ -94,6 +102,18 @@ class TaskController extends Controller
             $query->orderBy($sortBy, $sortDirection);
         }
 
+        // If user can only view assigned tasks, filter by assignments
+        if ($user->checkPermission('view assigned tasks') && !$user->checkPermission('view all tasks')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhere('assigned_to', $user->id)
+                  ->orWhereHas('assignments', function ($subQ) use ($user) {
+                      $subQ->where('user_id', $user->id)
+                           ->whereNull('unassigned_at');
+                  });
+            });
+        }
+
         // Apply pagination
         $perPage = min($request->get('per_page', 15), 100);
         $tasks = $query->paginate($perPage);
@@ -106,13 +126,59 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to create tasks
+        if (!$user->checkPermission('create tasks')) {
+            return response()->json([
+                'message' => 'You do not have permission to create tasks'
+            ], 403);
+        }
+
         $this->authorize('create', Task::class);
 
         try {
             DB::beginTransaction();
 
+            // Check and consume credits atomically within transaction (unless super admin)
+            if (!$user->isSuperAdmin()) {
+                // This will check and consume credits atomically with database lock
+                if (!$user->consumeCredits('task', 1)) {
+                    $effectiveUser = $user->getEffectiveUser();
+                    
+                    // Get fresh credit data after rollback for error message
+                    DB::rollBack();
+                    
+                    // Get credit info after rollback (fresh data)
+                    $credit = \App\Models\UserCredit::where('user_id', $effectiveUser->id)
+                        ->where('module', 'task')
+                        ->first();
+                    
+                    $available = $credit ? max(0, $credit->credits - $credit->used) : 0;
+                    $totalCredits = $credit ? $credit->credits : 0;
+                    
+                    Log::warning('Task creation credit check failed', [
+                        'user_id' => $user->id,
+                        'effective_user_id' => $effectiveUser->id,
+                        'available' => $available,
+                        'total_credits' => $totalCredits,
+                    ]);
+                    
+                    return response()->json([
+                        'message' => 'Insufficient credits to create task',
+                        'error' => "You have {$available} task credit(s) available (out of {$totalCredits} total), but need 1.",
+                    ], 403);
+                }
+                
+                Log::info('Task creation credit consumed', [
+                    'user_id' => $user->id,
+                    'effective_user_id' => $user->getEffectiveUser()->id,
+                ]);
+            }
+
             $taskData = $request->validated();
-            $taskData['created_by'] = $request->user()->id;
+            $taskData['created_by'] = $user->id;
+
             $task = Task::create($taskData);
 
             // Create a system comment for task creation
@@ -260,13 +326,21 @@ class TaskController extends Controller
         try {
             $taskTitle = $task->title;
             $taskId = $task->id;
-            $userId = $request->user()->id;
+            $user = $request->user();
+            
+            // Get the task creator to release credits
+            $taskCreator = $task->creator;
 
             $task->delete();
 
+            // Release credit when task is deleted (based on task creator)
+            if ($taskCreator && $taskCreator->id) {
+                $taskCreator->releaseCredits('task', 1);
+            }
+
             Log::info('Task deleted', [
                 'task_id' => $taskId,
-                'user_id' => $userId,
+                'user_id' => $user->id,
                 'title' => $taskTitle,
             ]);
 
@@ -293,22 +367,45 @@ class TaskController extends Controller
      */
     public function statistics(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        
+        // Check permission to view tasks
+        if (!$user->checkPermission('view all tasks') && !$user->checkPermission('view assigned tasks')) {
+            return response()->json([
+                'message' => 'You do not have permission to view task statistics'
+            ], 403);
+        }
+        
+        $userId = $user->id;
+        $canViewAll = $user->checkPermission('view all tasks');
+
+        // Base query - filter by permissions
+        $baseQuery = Task::query();
+        if (!$canViewAll) {
+            $baseQuery->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhere('assigned_to', $user->id)
+                  ->orWhereHas('assignments', function ($subQ) use ($user) {
+                      $subQ->where('user_id', $user->id)
+                           ->whereNull('unassigned_at');
+                  });
+            });
+        }
 
         $stats = [
-            'total' => Task::count(),
+            'total' => (clone $baseQuery)->count(),
             'my_tasks' => Task::where('assigned_to', $userId)->count(),
             'created_by_me' => Task::where('created_by', $userId)->count(),
-            'pending' => Task::where('status', 'pending')->count(),
-            'in_progress' => Task::where('status', 'in_progress')->count(),
-            'completed' => Task::where('status', 'completed')->count(),
-            'overdue' => Task::overdue()->count(),
-            'due_today' => Task::dueToday()->count(),
-            'by_priority' => Task::selectRaw('priority, COUNT(*) as count')
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'in_progress' => (clone $baseQuery)->where('status', 'in_progress')->count(),
+            'completed' => (clone $baseQuery)->where('status', 'completed')->count(),
+            'overdue' => (clone $baseQuery)->overdue()->count(),
+            'due_today' => (clone $baseQuery)->dueToday()->count(),
+            'by_priority' => (clone $baseQuery)->selectRaw('priority, COUNT(*) as count')
                 ->groupBy('priority')
                 ->pluck('count', 'priority')
                 ->toArray(),
-            'by_category' => Task::join('categories', 'tasks.category_id', '=', 'categories.id')
+            'by_category' => (clone $baseQuery)->join('categories', 'tasks.category_id', '=', 'categories.id')
                 ->selectRaw('categories.name, COUNT(*) as count')
                 ->groupBy('categories.id', 'categories.name')
                 ->pluck('count', 'name')

@@ -29,6 +29,11 @@ class UpdateUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['sometimes', 'nullable', 'string', Password::min(8)->mixedCase()->numbers()->symbols(), 'confirmed'],
+            'role' => ['nullable', 'string', 'exists:roles,name'],
+            'credits' => ['nullable', 'array'],
+            'credits.user' => ['nullable', 'integer', 'min:0'],
+            'credits.email' => ['nullable', 'integer', 'min:0'],
+            'credits.task' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

@@ -12,6 +12,9 @@ import AuthCallback from "./pages/AuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import TaskManagement from "./pages/TaskManagement";
 import UserManagement from "./pages/UserManagement";
+import MailCommandCenter from "./pages/MailCommandCenter";
+import InfrastructureGallery from "./pages/InfrastructureGallery";
+import LogHorizon from "./pages/LogHorizon";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +48,9 @@ const App = () => (
             <Route index element={<PortalDashboard />} />
             <Route path="tasks" element={<TaskManagement />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="mail" element={<MailCommandCenter />} />
+            <Route path="devops" element={<InfrastructureGallery />} />
+            <Route path="logs" element={<LogHorizon />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

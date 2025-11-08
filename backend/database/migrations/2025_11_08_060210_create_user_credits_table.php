@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('user_credits', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('module')->comment('Module type: user, email, or task');
+            $table->integer('credits')->default(0)->comment('Total credits allocated');
+            $table->integer('used')->default(0)->comment('Credits used');
+            $table->timestamps();
+            
+            // Ensure one credit record per user per module
+            $table->unique(['user_id', 'module']);
+            
+            // Index for faster queries
+            $table->index(['user_id', 'module']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('user_credits');
+    }
+};

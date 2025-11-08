@@ -30,7 +30,7 @@ class TaskCommentPolicy
      */
     public function create(User $user): bool
     {
-        return true; // All authenticated users can create comments
+        return $user->checkPermission('view comments');
     }
 
     /**
@@ -38,9 +38,18 @@ class TaskCommentPolicy
      */
     public function update(User $user, TaskComment $taskComment): bool
     {
-        // Users can only update their own comments
         // System comments cannot be updated
-        return $user->id === $taskComment->user_id && !$taskComment->is_system_comment;
+        if ($taskComment->is_system_comment) {
+            return false;
+        }
+        
+        // Users with manage comments permission can update any comment
+        if ($user->checkPermission('manage comments')) {
+            return true;
+        }
+        
+        // Users can only update their own comments
+        return $user->id === $taskComment->user_id;
     }
 
     /**
@@ -48,9 +57,18 @@ class TaskCommentPolicy
      */
     public function delete(User $user, TaskComment $taskComment): bool
     {
-        // Users can delete their own comments
         // System comments cannot be deleted by users
-        return $user->id === $taskComment->user_id && !$taskComment->is_system_comment;
+        if ($taskComment->is_system_comment) {
+            return false;
+        }
+        
+        // Users with manage comments permission can delete any comment
+        if ($user->checkPermission('manage comments')) {
+            return true;
+        }
+        
+        // Users can only delete their own comments
+        return $user->id === $taskComment->user_id;
     }
 
     /**

@@ -73,6 +73,15 @@ class TaskCommentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to view comments (required to add comments)
+        if (!$user->checkPermission('view comments')) {
+            return response()->json([
+                'message' => 'You do not have permission to add comments'
+            ], 403);
+        }
+        
         $validator = Validator::make($request->all(), [
             'content' => 'required|string|max:5000',
             'task_id' => 'required|exists:tasks,id',
@@ -147,6 +156,18 @@ class TaskCommentController extends Controller
      */
     public function update(Request $request, TaskComment $taskComment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to manage comments
+        if (!$user->checkPermission('manage comments')) {
+            // If user can't manage comments, they can only edit their own comments
+            if ($taskComment->user_id !== $user->id) {
+                return response()->json([
+                    'message' => 'You do not have permission to edit this comment'
+                ], 403);
+            }
+        }
+        
         $validator = Validator::make($request->all(), [
             'content' => 'sometimes|required|string|max:5000',
             'metadata' => 'nullable|array',
@@ -198,11 +219,23 @@ class TaskCommentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TaskComment $taskComment): JsonResponse
+    public function destroy(Request $request, TaskComment $taskComment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to manage comments
+        if (!$user->checkPermission('manage comments')) {
+            // If user can't manage comments, they can only delete their own comments
+            if ($taskComment->user_id !== $user->id) {
+                return response()->json([
+                    'message' => 'You do not have permission to delete this comment'
+                ], 403);
+            }
+        }
+        
         try {
             $commentId = $taskComment->id;
-            $userId = auth()->id();
+            $userId = $user->id;
 
             $taskComment->delete();
 
@@ -218,7 +251,7 @@ class TaskCommentController extends Controller
         } catch (\Exception $e) {
             Log::error('Task comment deletion failed', [
                 'comment_id' => $taskComment->id,
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'error' => $e->getMessage(),
             ]);
 

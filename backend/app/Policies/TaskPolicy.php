@@ -13,7 +13,7 @@ class TaskPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true; // All authenticated users can view tasks
+        return $user->checkPermission('view all tasks') || $user->checkPermission('view assigned tasks');
     }
 
     /**
@@ -21,13 +21,19 @@ class TaskPolicy
      */
     public function view(User $user, Task $task): bool
     {
-        // Users can view tasks if they:
-        // 1. Created the task
-        // 2. Are assigned to the task
-        // 3. Are assigned as collaborator/watcher
-        return $user->id === $task->created_by ||
-               $user->id === $task->assigned_to ||
-               $task->assignments()->where('user_id', $user->id)->exists();
+        // Users with "view all tasks" permission can view any task
+        if ($user->checkPermission('view all tasks')) {
+            return true;
+        }
+        
+        // Users with "view assigned tasks" can only view tasks they're involved with
+        if ($user->checkPermission('view assigned tasks')) {
+            return $user->id === $task->created_by ||
+                   $user->id === $task->assigned_to ||
+                   $task->assignments()->where('user_id', $user->id)->exists();
+        }
+        
+        return false;
     }
 
     /**
@@ -35,7 +41,7 @@ class TaskPolicy
      */
     public function create(User $user): bool
     {
-        return true; // All authenticated users can create tasks
+        return $user->checkPermission('create tasks');
     }
 
     /**
@@ -43,6 +49,11 @@ class TaskPolicy
      */
     public function update(User $user, Task $task): bool
     {
+        // Check permission to edit tasks
+        if (!$user->checkPermission('edit tasks')) {
+            return false;
+        }
+        
         // Users can update tasks if they:
         // 1. Created the task
         // 2. Are assigned to the task
@@ -59,6 +70,11 @@ class TaskPolicy
      */
     public function delete(User $user, Task $task): bool
     {
+        // Check permission to delete tasks
+        if (!$user->checkPermission('delete tasks')) {
+            return false;
+        }
+        
         // Only the creator can delete tasks
         return $user->id === $task->created_by;
     }
@@ -86,6 +102,11 @@ class TaskPolicy
      */
     public function assign(User $user, Task $task): bool
     {
+        // Check permission to assign tasks
+        if (!$user->checkPermission('assign tasks')) {
+            return false;
+        }
+        
         // Users can assign tasks if they:
         // 1. Created the task
         // 2. Are assigned to the task
@@ -98,6 +119,11 @@ class TaskPolicy
      */
     public function changeStatus(User $user, Task $task): bool
     {
+        // Check permission to change task status
+        if (!$user->checkPermission('change task status')) {
+            return false;
+        }
+        
         // Users can change status if they:
         // 1. Created the task
         // 2. Are assigned to the task
@@ -114,8 +140,8 @@ class TaskPolicy
      */
     public function addComment(User $user, Task $task): bool
     {
-        // Users can add comments if they can view the task
-        return $this->view($user, $task);
+        // Users can add comments if they can view the task and have permission
+        return $user->checkPermission('view comments') && $this->view($user, $task);
     }
 
     /**
@@ -123,7 +149,7 @@ class TaskPolicy
      */
     public function addAttachment(User $user, Task $task): bool
     {
-        // Users can add attachments if they can update the task
-        return $this->update($user, $task);
+        // Users can add attachments if they can update the task and have permission
+        return $user->checkPermission('manage attachments') && $this->update($user, $task);
     }
 }

@@ -33,6 +33,7 @@ import {
 import { useUserService } from '@/hooks/useUserService';
 import UserModal from '@/components/UserModal';
 import UserDetailModal from '@/components/UserDetailModal';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import type { User, UserFilters } from '@/types/user';
 
 const UserManagement: React.FC = () => {
@@ -165,10 +166,12 @@ const UserManagement: React.FC = () => {
             Manage user accounts and permissions
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateUser}>
-          <Plus className="h-4 w-4 mr-2" />
-          New User
-        </Button>
+        <PermissionGuard permission="create users">
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateUser}>
+            <Plus className="h-4 w-4 mr-2" />
+            New User
+          </Button>
+        </PermissionGuard>
       </div>
 
       {/* Statistics Cards */}

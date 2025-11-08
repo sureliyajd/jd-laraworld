@@ -9,6 +9,8 @@ export interface AuthUser {
   email_verified_at?: string;
   created_at: string;
   updated_at: string;
+  roles?: Array<{ id: number; name: string }> | string[];
+  permissions?: string[];
 }
 
 export interface AuthTokens {

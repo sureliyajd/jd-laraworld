@@ -10,6 +10,7 @@ import { Calendar, Clock, User, MessageSquare, Paperclip, Plus, Search, Filter, 
 import { useTaskService } from '@/hooks/useTaskService';
 import TaskModal from '@/components/TaskModal';
 import TaskDetailModal from '@/components/TaskDetailModal';
+import { PermissionGuard } from '@/components/PermissionGuard';
 
 interface Task {
   id: number;
@@ -171,10 +172,12 @@ const TaskManagement: React.FC = () => {
             Manage and track your team's tasks and projects
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateTask}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Task
-        </Button>
+        <PermissionGuard permission="create tasks">
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateTask}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Task
+          </Button>
+        </PermissionGuard>
       </div>
 
       {/* Stats Cards */}

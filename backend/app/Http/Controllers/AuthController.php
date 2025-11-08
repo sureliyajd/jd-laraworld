@@ -16,7 +16,27 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        
+        // Load roles and permissions for 'api' guard
+        $user->load(['roles' => function ($query) {
+            $query->where('guard_name', 'api');
+        }, 'permissions' => function ($query) {
+            $query->where('guard_name', 'api');
+        }]);
+        
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'parent_id' => $user->parent_id,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+            'roles' => $user->roles->pluck('name')->toArray(),
+            'role' => $user->roles->first()?->name,
+            'permissions' => $user->getAllPermissions('api')->pluck('name')->toArray(),
+        ]);
     }
 
     /**

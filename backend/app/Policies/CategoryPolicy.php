@@ -29,7 +29,8 @@ class CategoryPolicy
      */
     public function create(User $user): bool
     {
-        return true; // All authenticated users can create categories
+        // Users need permission to create tasks to create categories
+        return $user->checkPermission('create tasks');
     }
 
     /**
@@ -37,7 +38,8 @@ class CategoryPolicy
      */
     public function update(User $user, Category $category): bool
     {
-        return true; // All authenticated users can update categories
+        // Users need permission to edit tasks to update categories
+        return $user->checkPermission('edit tasks');
     }
 
     /**
@@ -45,6 +47,11 @@ class CategoryPolicy
      */
     public function delete(User $user, Category $category): bool
     {
+        // Users need permission to delete tasks to delete categories
+        if (!$user->checkPermission('delete tasks')) {
+            return false;
+        }
+        
         // Users can only delete categories that have no tasks
         return $category->tasks()->count() === 0;
     }

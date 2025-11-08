@@ -3,8 +3,19 @@ export interface User {
   name: string;
   email: string;
   email_verified_at?: string;
+  parent_id?: number | null;
   created_at: string;
   updated_at: string;
+  roles?: string[];
+  role?: string;
+  permissions?: string[];
+  credits?: {
+    [key: string]: {
+      credits: number;
+      used: number;
+      available: number;
+    };
+  };
   task_stats?: UserTaskStats;
   created_tasks_count?: number;
   assigned_tasks_count?: number;
@@ -24,6 +35,12 @@ export interface CreateUserData {
   email: string;
   password: string;
   password_confirmation: string;
+  role?: string;
+  credits?: {
+    user?: number;
+    email?: number;
+    task?: number;
+  };
 }
 
 export interface UpdateUserData {
@@ -31,6 +48,17 @@ export interface UpdateUserData {
   email?: string;
   password?: string;
   password_confirmation?: string;
+  role?: string | null;
+  credits?: {
+    user?: number;
+    email?: number;
+    task?: number;
+  };
+}
+
+export interface Role {
+  id: number;
+  name: string;
 }
 
 export interface UserStatistics {

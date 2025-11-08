@@ -29,7 +29,7 @@ class EmailLogController extends Controller
             throw new AuthorizationException('You do not have permission to view email logs');
         }
         
-        $query = EmailLog::with('sender')
+        $query = EmailLog::with(['sender', 'mailer'])
             ->orderBy('created_at', 'desc');
         
         // If user can only view their own email logs, filter by sent_by
@@ -144,71 +144,26 @@ class EmailLogController extends Controller
                 ],
             ]);
 
-            // Send email
-            try {
-                $mail = new CustomEmail(
-                    subject: $request->subject,
-                    body: $request->body,
-                    htmlBody: $request->html_body,
-                    recipientName: $request->recipient_name
-                );
+            // Dispatch email job (will use configured mailer automatically)
+            \App\Jobs\SendEmailJob::dispatch(
+                $request->recipient_email,
+                $request->subject,
+                $request->body,
+                $request->html_body,
+                $request->recipient_name,
+                $request->cc ?? null,
+                $request->bcc ?? null,
+                $user,
+                null, // Will use active mailer for user
+                $emailLog->id
+            );
 
-                $mail->to($request->recipient_email, $request->recipient_name);
+            DB::commit();
 
-                // Add CC recipients
-                if ($request->has('cc') && is_array($request->cc)) {
-                    foreach ($request->cc as $ccEmail) {
-                        $mail->cc($ccEmail);
-                    }
-                }
-
-                // Add BCC recipients
-                if ($request->has('bcc') && is_array($request->bcc)) {
-                    foreach ($request->bcc as $bccEmail) {
-                        $mail->bcc($bccEmail);
-                    }
-                }
-
-                Mail::send($mail);
-
-                // Update email log status
-                $emailLog->update([
-                    'status' => 'sent',
-                    'sent_at' => now(),
-                ]);
-
-                DB::commit();
-
-                return response()->json([
-                    'message' => 'Email sent successfully',
-                    'data' => new EmailLogResource($emailLog->load('sender')),
-                ], 201);
-
-            } catch (\Exception $e) {
-                // Update email log with error
-                $emailLog->update([
-                    'status' => 'failed',
-                    'error_message' => $e->getMessage(),
-                ]);
-
-                // Release credit if email failed to send (unless super admin)
-                if (!$user->isSuperAdmin()) {
-                    $user->releaseCredits('email', 1);
-                }
-
-                DB::commit();
-
-                Log::error('Failed to send email', [
-                    'email_log_id' => $emailLog->id,
-                    'error' => $e->getMessage(),
-                ]);
-
-                return response()->json([
-                    'message' => 'Failed to send email',
-                    'error' => $e->getMessage(),
-                    'data' => new EmailLogResource($emailLog->load('sender')),
-                ], 500);
-            }
+            return response()->json([
+                'message' => 'Email queued successfully',
+                'data' => new EmailLogResource($emailLog->load('sender')),
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -230,7 +185,7 @@ class EmailLogController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
-        $emailLog = EmailLog::with('sender')->findOrFail($id);
+        $emailLog = EmailLog::with(['sender', 'mailer'])->findOrFail($id);
         
         // Check permission to view email logs
         if (!$user->checkPermission('view all email logs') && !$user->checkPermission('view email logs')) {

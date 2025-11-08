@@ -26,6 +26,12 @@ export interface EmailLog {
     name: string;
     email: string;
   };
+  mailer?: {
+    id: number;
+    name: string;
+    provider: string;
+  } | null;
+  mailer_id?: number | null;
 }
 
 export interface SendEmailData {

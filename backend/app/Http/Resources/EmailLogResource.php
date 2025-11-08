@@ -41,6 +41,14 @@ class EmailLogResource extends JsonResource
                     'email' => $this->sender->email,
                 ];
             }),
+            'mailer' => $this->whenLoaded('mailer', function () {
+                return [
+                    'id' => $this->mailer->id,
+                    'name' => $this->mailer->name,
+                    'provider' => $this->mailer->provider,
+                ];
+            }),
+            'mailer_id' => $this->mailer_id,
 
             // Links for API navigation
             'links' => [

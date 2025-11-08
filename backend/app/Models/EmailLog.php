@@ -14,6 +14,7 @@ class EmailLog extends Model
      */
     protected $fillable = [
         'sent_by',
+        'mailer_id',
         'recipient_email',
         'recipient_name',
         'subject',
@@ -44,6 +45,14 @@ class EmailLog extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sent_by');
+    }
+
+    /**
+     * Get the mailer used to send the email
+     */
+    public function mailer(): BelongsTo
+    {
+        return $this->belongsTo(Mailer::class);
     }
 
     /**

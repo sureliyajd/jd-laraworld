@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { PublicUserNotice } from '@/components/PublicUserNotice';
 import { usePermissions } from '@/hooks/usePermissions';
+import MailerManagement from '@/components/MailerManagement';
 
 const MailCommandCenter: React.FC = () => {
   const { toast } = useToast();
@@ -178,22 +179,33 @@ const MailCommandCenter: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Mail Command Center</h1>
           <p className="text-gray-600 mt-1">
-            Send emails and monitor email logs with comprehensive tracking
+            Send emails, manage mailers, and monitor email logs with comprehensive tracking
           </p>
         </div>
-        <PermissionGuard permission="send emails">
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsComposeOpen(true)}>
-            <Send className="h-4 w-4 mr-2" />
-            Compose Email
-          </Button>
-        </PermissionGuard>
       </div>
 
       {/* Public User Notice */}
       {isPublicUser() && <PublicUserNotice />}
 
-      {/* Stats Cards */}
-      {stats && (
+      {/* Tabs */}
+      <Tabs defaultValue="logs" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="logs">Email Logs</TabsTrigger>
+          <TabsTrigger value="mailers">Mailer Management</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="logs" className="space-y-6">
+          <div className="flex items-center justify-end">
+            <PermissionGuard permission="send emails">
+              <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsComposeOpen(true)}>
+                <Send className="h-4 w-4 mr-2" />
+                Compose Email
+              </Button>
+            </PermissionGuard>
+          </div>
+
+          {/* Stats Cards */}
+          {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -255,10 +267,10 @@ const MailCommandCenter: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-      )}
+          )}
 
-      {/* Filters */}
-      <Card>
+          {/* Filters */}
+          <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -291,10 +303,10 @@ const MailCommandCenter: React.FC = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+          </Card>
 
-      {/* Email Logs List */}
-      <div className="space-y-4">
+          {/* Email Logs List */}
+          <div className="space-y-4">
         {loading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
@@ -401,10 +413,10 @@ const MailCommandCenter: React.FC = () => {
             </Card>
           ))
         )}
-      </div>
+          </div>
 
-      {/* Compose Email Dialog */}
-      <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+          {/* Compose Email Dialog */}
+          <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Compose Email</DialogTitle>
@@ -474,10 +486,10 @@ const MailCommandCenter: React.FC = () => {
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+          </Dialog>
 
-      {/* View Email Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          {/* View Email Dialog */}
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedEmail?.subject}</DialogTitle>
@@ -529,6 +541,12 @@ const MailCommandCenter: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        <TabsContent value="mailers">
+          <MailerManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

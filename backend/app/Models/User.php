@@ -150,6 +150,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's mailers
+     */
+    public function mailers(): HasMany
+    {
+        return $this->hasMany(Mailer::class);
+    }
+
+    /**
      * Check if user is a super admin
      */
     public function isSuperAdmin(): bool

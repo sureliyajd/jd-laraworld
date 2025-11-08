@@ -12,7 +12,7 @@ import {
   Users,
   Mail,
   FileText,
-  CreditCard,
+  Coins,
   Sparkles,
   Rocket,
   Key,
@@ -164,7 +164,7 @@ const PortalDashboard = () => {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{stat.emoji}</span>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                   </div>
                   <p className="text-3xl font-bold">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.description}</p>
@@ -181,8 +181,8 @@ const PortalDashboard = () => {
         <Card className="border-2 border-gradient-to-r from-purple-200 to-blue-200 bg-gradient-to-br from-purple-50 to-blue-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
-              <CreditCard className="h-6 w-6 text-purple-600" />
-              <span>💳 Credit System Overview</span>
+              <Coins className="h-6 w-6 text-purple-600" />
+              <span>🪙 Credit System Overview</span>
             </CardTitle>
             <CardDescription className="text-base">
               🎁 This portal uses a <span className="font-semibold">credit-based system</span> to manage resource usage. 
@@ -358,7 +358,7 @@ const PortalDashboard = () => {
 
       {/* Laravel Permissions Showcase */}
       <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-blue-50">
-        <CardHeader>
+            <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
             <Shield className="h-6 w-6 text-purple-600" />
             <span>🔐 Laravel Spatie Permissions System</span>
@@ -366,8 +366,8 @@ const PortalDashboard = () => {
           <CardDescription className="text-base">
             This portal showcases the powerful <span className="font-semibold text-purple-700">Spatie Laravel Permission</span> package! 
             Role-based access control with granular permissions. 🎯
-          </CardDescription>
-        </CardHeader>
+              </CardDescription>
+            </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white p-5 rounded-lg border-2 border-purple-200">
@@ -426,10 +426,10 @@ const PortalDashboard = () => {
               which provides a flexible and powerful way to manage roles and permissions in Laravel applications. 
               Every action is protected by permission checks, ensuring secure access control! 
               <span className="ml-1">🛡️</span>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
       {/* Feature Highlights */}
       <div className="space-y-4">
@@ -509,7 +509,7 @@ const PortalDashboard = () => {
                 <h4 className="font-bold text-lg mb-1">{tech.name}</h4>
                 <p className="text-sm font-semibold text-purple-600 mb-1">{tech.tech}</p>
                 <p className="text-xs text-muted-foreground">{tech.description}</p>
-              </div>
+            </div>
             ))}
           </div>
         </CardContent>

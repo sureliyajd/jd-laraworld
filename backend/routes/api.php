@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TaskAssignmentController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\EmailLogController;
+use App\Http\Controllers\Api\MailerController;
 use App\Http\Controllers\Api\DevOpsController;
 use App\Http\Controllers\Api\LogHorizonController;
 
@@ -70,6 +71,13 @@ Route::middleware('auth:api')->group(function () {
     // Email Logs API Routes (Mail Command Center)
     Route::apiResource('email-logs', EmailLogController::class);
     Route::get('/email-logs/statistics/overview', [EmailLogController::class, 'statistics'])->name('api.email-logs.statistics');
+    
+    // Mailer Management API Routes
+    Route::apiResource('mailers', MailerController::class);
+    Route::get('/mailers/providers/list', [MailerController::class, 'providers'])->name('api.mailers.providers');
+    Route::post('/mailers/{id}/test', [MailerController::class, 'test'])->name('api.mailers.test');
+    Route::post('/mailers/{id}/activate', [MailerController::class, 'activate'])->name('api.mailers.activate');
+    Route::post('/mailers/{id}/deactivate', [MailerController::class, 'deactivate'])->name('api.mailers.deactivate');
     
     // DevOps API Routes (Infrastructure Gallery)
     Route::get('/devops', [DevOpsController::class, 'index'])->name('api.devops.index');

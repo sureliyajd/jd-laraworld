@@ -18,8 +18,20 @@ class AuthController extends Controller
     {
         $user = $request->user();
         
-        // Load roles and permissions (will use 'api' guard by default due to $guard_name property)
-        $user->load('roles.permissions', 'permissions');
+        // Load roles, permissions, and credits
+        $user->load('roles.permissions', 'permissions', 'credits');
+        
+        // Prepare credits data
+        $credits = [];
+        if ($user->relationLoaded('credits')) {
+            $credits = $user->credits->mapWithKeys(function ($credit) {
+                return [$credit->module => [
+                    'credits' => $credit->credits,
+                    'used' => $credit->used,
+                    'available' => $credit->available,
+                ]];
+            })->toArray();
+        }
         
         return response()->json([
             'id' => $user->id,
@@ -32,6 +44,8 @@ class AuthController extends Controller
             'roles' => $user->roles->pluck('name')->toArray(),
             'role' => $user->roles->first()?->name,
             'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+            'credits' => $credits,
+            'credit_stats' => $user->getCreditStats(),
         ]);
     }
 
@@ -93,8 +107,20 @@ class AuthController extends Controller
 
         $user = Auth::user();
         
-        // Load roles and permissions for the authenticated user
-        $user->load('roles.permissions', 'permissions');
+        // Load roles, permissions, and credits for the authenticated user
+        $user->load('roles.permissions', 'permissions', 'credits');
+        
+        // Prepare credits data
+        $credits = [];
+        if ($user->relationLoaded('credits')) {
+            $credits = $user->credits->mapWithKeys(function ($credit) {
+                return [$credit->module => [
+                    'credits' => $credit->credits,
+                    'used' => $credit->used,
+                    'available' => $credit->available,
+                ]];
+            })->toArray();
+        }
         
         $token = $user->createToken('auth_token')->accessToken;
 
@@ -110,6 +136,8 @@ class AuthController extends Controller
                 'roles' => $user->roles->pluck('name')->toArray(),
                 'role' => $user->roles->first()?->name,
                 'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                'credits' => $credits,
+                'credit_stats' => $user->getCreditStats(),
             ],
             'access_token' => $token,
             'token_type' => 'Bearer',

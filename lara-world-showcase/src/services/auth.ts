@@ -11,6 +11,20 @@ export interface AuthUser {
   updated_at: string;
   roles?: Array<{ id: number; name: string }> | string[];
   permissions?: string[];
+  credits?: {
+    [key: string]: {
+      credits: number;
+      used: number;
+      available: number;
+    };
+  };
+  credit_stats?: {
+    [key: string]: {
+      credits: number;
+      used: number;
+      available: number;
+    };
+  };
 }
 
 export interface AuthTokens {

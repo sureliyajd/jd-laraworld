@@ -11,6 +11,8 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, Save, X, UserPlus, UserMinus, Edit, Trash2 } from 'lucide-react';
 import { useAssignmentService } from '@/hooks/useAssignmentService';
 import { useUserService } from '@/hooks/useUserService';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PublicUserNotice } from './PublicUserNotice';
 import { ASSIGNMENT_ROLES } from '@/types/assignment';
 import type { TaskAssignment, CreateAssignmentData, UpdateAssignmentData, AssignmentRole } from '@/types/assignment';
 
@@ -33,6 +35,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
 }) => {
   const { fetchTaskAssignments, createAssignment, updateAssignment, deleteAssignment } = useAssignmentService();
   const { fetchAllUsers } = useUserService();
+  const { isPublicUser } = usePermissions();
   
   const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -189,6 +192,10 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
+        )}
+
+        {isPublicUser() && (
+          <PublicUserNotice variant="compact" />
         )}
 
         {/* Current Assignments */}

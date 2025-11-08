@@ -256,6 +256,36 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check if specific fields are being changed that require special permissions
+        $changes = $request->validated();
+        
+        // Check permission for status changes
+        if (isset($changes['status']) && $changes['status'] !== $task->status) {
+            if (!$user->can('changeStatus', $task)) {
+                throw new AuthorizationException('You do not have permission to change task status');
+            }
+        }
+        
+        // Check permission for priority changes
+        if (isset($changes['priority']) && $changes['priority'] !== $task->priority) {
+            if (!$user->can('changePriority', $task)) {
+                throw new AuthorizationException('You do not have permission to change task priority');
+            }
+        }
+        
+        // Check permission for assignment changes
+        if (isset($changes['assigned_to']) && $changes['assigned_to'] !== $task->assigned_to) {
+            if (!$user->checkPermission('assign tasks')) {
+                throw new AuthorizationException('You do not have permission to assign tasks');
+            }
+            if (!$user->can('assign', $task)) {
+                throw new AuthorizationException('You do not have permission to assign this task');
+            }
+        }
+        
+        // General update permission check
         $this->authorize('update', $task);
 
         try {

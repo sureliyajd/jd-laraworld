@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Save, X } from 'lucide-react';
 import { useUserService } from '@/hooks/useUserService';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PublicUserNotice } from './PublicUserNotice';
 import { roleService } from '@/services/roleService';
 import type { User, CreateUserData, UpdateUserData, Role } from '@/types/user';
 
@@ -27,6 +29,7 @@ const UserModal: React.FC<UserModalProps> = ({
 }) => {
   const { createUser, updateUser, fetchUser } = useUserService();
   const { user: currentUser } = useAuth();
+  const { isPublicUser } = usePermissions();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [loadingUserData, setLoadingUserData] = useState(false);
@@ -398,6 +401,10 @@ const UserModal: React.FC<UserModalProps> = ({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+          {isPublicUser() && (
+            <PublicUserNotice variant="compact" />
+          )}
+          
           {errors.submit && (
             <Alert variant="destructive">
               <AlertDescription>{errors.submit}</AlertDescription>

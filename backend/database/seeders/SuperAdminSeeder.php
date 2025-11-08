@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class SuperAdminSeeder extends Seeder
 {
@@ -29,9 +30,15 @@ class SuperAdminSeeder extends Seeder
             ]
         );
 
-        // Assign super_admin role to the user
-        if (!$superAdmin->hasRole('super_admin')) {
-            $superAdmin->assignRole('super_admin');
+        // Assign super_admin role to the user for 'api' guard
+        if (!$superAdmin->hasRole('super_admin', 'api')) {
+            $superAdmin->assignRole($superAdminRole);
+        }
+        
+        // Ensure all permissions are synced to the role (in case permissions were added after role creation)
+        if ($superAdminRole) {
+            $allPermissions = Permission::where('guard_name', 'api')->get();
+            $superAdminRole->syncPermissions($allPermissions);
         }
 
         $this->command->info('Super Admin created successfully!');

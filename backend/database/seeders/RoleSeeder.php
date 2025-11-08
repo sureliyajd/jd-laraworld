@@ -55,10 +55,11 @@ class RoleSeeder extends Seeder
                 array_filter($taskManagementPermissions, fn($perm) => $perm !== 'view all tasks')
             );
 
-            // users: all permissions
+            // users: all except 'view all users'
+            $usersPermissions = $permissionsConfig['users']['permissions'];
             $visitorPermissionNames = array_merge(
                 $visitorPermissionNames,
-                $permissionsConfig['users']['permissions']
+                array_filter($usersPermissions, fn($perm) => $perm !== 'view all users')
             );
 
             // Get permission models for 'api' guard

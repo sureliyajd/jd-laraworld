@@ -64,12 +64,29 @@ class TaskAssignmentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to assign tasks
+        if (!$user->checkPermission('assign tasks')) {
+            return response()->json([
+                'message' => 'You do not have permission to assign tasks'
+            ], 403);
+        }
+        
         $request->validate([
             'task_id' => 'required|exists:tasks,id',
             'user_id' => 'required|exists:users,id',
             'role' => 'required|in:assignee,collaborator,watcher',
             'notes' => 'nullable|string|max:1000',
         ]);
+        
+        // Check if user can assign this specific task
+        $task = Task::find($request->task_id);
+        if ($task && !$user->can('assign', $task)) {
+            return response()->json([
+                'message' => 'You do not have permission to assign this task'
+            ], 403);
+        }
 
         // Check if assignment already exists (active or inactive)
         $existingAssignment = TaskAssignment::where('task_id', $request->task_id)
@@ -140,6 +157,23 @@ class TaskAssignmentController extends Controller
      */
     public function update(Request $request, TaskAssignment $taskAssignment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to assign tasks
+        if (!$user->checkPermission('assign tasks')) {
+            return response()->json([
+                'message' => 'You do not have permission to update task assignments'
+            ], 403);
+        }
+        
+        // Check if user can assign this specific task
+        $task = $taskAssignment->task;
+        if ($task && !$user->can('assign', $task)) {
+            return response()->json([
+                'message' => 'You do not have permission to update assignments for this task'
+            ], 403);
+        }
+        
         $request->validate([
             'role' => 'sometimes|in:assignee,collaborator,watcher',
             'notes' => 'nullable|string|max:1000',
@@ -172,8 +206,25 @@ class TaskAssignmentController extends Controller
     /**
      * Remove the specified assignment (unassign user).
      */
-    public function destroy(TaskAssignment $taskAssignment): JsonResponse
+    public function destroy(Request $request, TaskAssignment $taskAssignment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to assign tasks (required to unassign)
+        if (!$user->checkPermission('assign tasks')) {
+            return response()->json([
+                'message' => 'You do not have permission to unassign tasks'
+            ], 403);
+        }
+        
+        // Check if user can assign this specific task
+        $task = $taskAssignment->task;
+        if ($task && !$user->can('assign', $task)) {
+            return response()->json([
+                'message' => 'You do not have permission to unassign users from this task'
+            ], 403);
+        }
+        
         if (!$taskAssignment->isActive()) {
             return response()->json([
                 'error' => 'Assignment is already inactive'

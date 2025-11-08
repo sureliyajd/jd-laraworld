@@ -25,9 +25,12 @@ import {
 import { emailService, EmailLog, SendEmailData } from '@/services/emailService';
 import { useToast } from '@/hooks/use-toast';
 import { PermissionGuard } from '@/components/PermissionGuard';
+import { PublicUserNotice } from '@/components/PublicUserNotice';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const MailCommandCenter: React.FC = () => {
   const { toast } = useToast();
+  const { isPublicUser } = usePermissions();
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -185,6 +188,9 @@ const MailCommandCenter: React.FC = () => {
           </Button>
         </PermissionGuard>
       </div>
+
+      {/* Public User Notice */}
+      {isPublicUser() && <PublicUserNotice />}
 
       {/* Stats Cards */}
       {stats && (

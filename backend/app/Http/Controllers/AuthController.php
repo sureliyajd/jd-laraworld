@@ -18,12 +18,8 @@ class AuthController extends Controller
     {
         $user = $request->user();
         
-        // Load roles and permissions for 'api' guard
-        $user->load(['roles' => function ($query) {
-            $query->where('guard_name', 'api');
-        }, 'permissions' => function ($query) {
-            $query->where('guard_name', 'api');
-        }]);
+        // Load roles and permissions (will use 'api' guard by default due to $guard_name property)
+        $user->load('roles.permissions', 'permissions');
         
         return response()->json([
             'id' => $user->id,
@@ -35,7 +31,7 @@ class AuthController extends Controller
             'updated_at' => $user->updated_at,
             'roles' => $user->roles->pluck('name')->toArray(),
             'role' => $user->roles->first()?->name,
-            'permissions' => $user->getAllPermissions('api')->pluck('name')->toArray(),
+            'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
         ]);
     }
 
@@ -96,10 +92,25 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+        
+        // Load roles and permissions for the authenticated user
+        $user->load('roles.permissions', 'permissions');
+        
         $token = $user->createToken('auth_token')->accessToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
+                'parent_id' => $user->parent_id,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'role' => $user->roles->first()?->name,
+                'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+            ],
             'access_token' => $token,
             'token_type' => 'Bearer',
         ]);

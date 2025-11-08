@@ -43,7 +43,7 @@ class UserResource extends JsonResource
             }),
             'credit_stats' => $this->when($request->get('include_credit_stats'), $this->getCreditStats()),
             'permissions' => $this->when($request->get('include_permissions', true), function () {
-                return $this->getAllPermissions('api')->pluck('name')->toArray();
+                return $this->getAllPermissions()->pluck('name')->toArray();
             }),
         ];
     }

@@ -31,9 +31,11 @@ import {
   XCircle
 } from 'lucide-react';
 import { useUserService } from '@/hooks/useUserService';
+import { usePermissions } from '@/hooks/usePermissions';
 import UserModal from '@/components/UserModal';
 import UserDetailModal from '@/components/UserDetailModal';
 import { PermissionGuard } from '@/components/PermissionGuard';
+import { PublicUserNotice } from '@/components/PublicUserNotice';
 import type { User, UserFilters } from '@/types/user';
 
 const UserManagement: React.FC = () => {
@@ -46,6 +48,7 @@ const UserManagement: React.FC = () => {
     deleteUser,
     fetchUserStatistics
   } = useUserService();
+  const { can, isPublicUser } = usePermissions();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [emailVerifiedFilter, setEmailVerifiedFilter] = useState<string>('all');
@@ -64,7 +67,11 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     // Load initial data
     applyFilters();
-    loadStatistics();
+    // Only load statistics if user has permission to view users
+    if (can.viewUsers()) {
+      loadStatistics();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applyFilters = () => {
@@ -111,7 +118,10 @@ const UserManagement: React.FC = () => {
       try {
         await deleteUser(deleteUserDialog.user.id);
         applyFilters();
-        loadStatistics();
+        // Only reload statistics if user has permission
+        if (can.viewUsers()) {
+          loadStatistics();
+        }
       } catch (err) {
         console.error('Failed to delete user:', err);
       }
@@ -121,12 +131,18 @@ const UserManagement: React.FC = () => {
 
   const handleUserSaved = () => {
     applyFilters();
-    loadStatistics();
+    // Only reload statistics if user has permission
+    if (can.viewUsers()) {
+      loadStatistics();
+    }
   };
 
   const handleUserUpdated = () => {
     applyFilters();
-    loadStatistics();
+    // Only reload statistics if user has permission
+    if (can.viewUsers()) {
+      loadStatistics();
+    }
   };
 
   const getInitials = (name: string) => {
@@ -174,8 +190,11 @@ const UserManagement: React.FC = () => {
         </PermissionGuard>
       </div>
 
+      {/* Public User Notice */}
+      {isPublicUser() && <PublicUserNotice />}
+
       {/* Statistics Cards */}
-      {statistics && (
+      {can.viewUsers() && statistics && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -357,28 +376,34 @@ const UserManagement: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewUser(user)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditUser(user)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDeleteUser(user)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {can.viewUsers() && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewUser(user)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <PermissionGuard permission="edit users">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditUser(user)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </PermissionGuard>
+                  <PermissionGuard permission="delete users">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteUser(user)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </PermissionGuard>
                 </div>
               </div>
             </CardContent>

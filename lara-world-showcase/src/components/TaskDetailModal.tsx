@@ -31,8 +31,11 @@ import {
   Maximize2
 } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
+import { usePermissions } from '@/hooks/usePermissions';
 import AssignmentModal from './AssignmentModal';
 import AttachmentModal from './AttachmentModal';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import { PublicUserNotice } from './PublicUserNotice';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -44,6 +47,7 @@ interface TaskDetailModalProps {
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, taskId, onTaskUpdated, onEditTask }) => {
   const { fetchTask, updateTaskStatus, updateTaskPriority, deleteTask, addComment, loading, error } = useTaskService();
+  const { can, isPublicUser } = usePermissions();
   const [task, setTask] = useState<any>(null);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -179,14 +183,18 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
             Created by {task.creator.name} • {new Date(task.created_at).toLocaleDateString()}
           </DialogDescription>
           <div className="flex items-center gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => onEditTask?.(task)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDeleteTask}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
+            <PermissionGuard permission="edit tasks">
+              <Button variant="outline" size="sm" onClick={() => onEditTask?.(task)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission="delete tasks">
+              <Button variant="outline" size="sm" onClick={handleDeleteTask}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </PermissionGuard>
           </div>
         </DialogHeader>
 
@@ -196,6 +204,10 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
               {error}
             </AlertDescription>
           </Alert>
+        )}
+
+        {isPublicUser() && (
+          <PublicUserNotice variant="compact" />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -240,14 +252,16 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                     <Users className="h-5 w-5" />
                     Assignments ({task.assignments?.length || 0})
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsAssignmentModalOpen(true)}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage Assignments
-                  </Button>
+                  <PermissionGuard permission="assign tasks">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAssignmentModalOpen(true)}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Manage Assignments
+                    </Button>
+                  </PermissionGuard>
                 </div>
               </CardHeader>
               <CardContent>
@@ -276,15 +290,17 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                   <div className="text-center py-6 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p>No users assigned to this task yet.</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsAssignmentModalOpen(true)}
-                      className="mt-4"
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Assign Users
-                    </Button>
+                    <PermissionGuard permission="assign tasks">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsAssignmentModalOpen(true)}
+                        className="mt-4"
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Assign Users
+                      </Button>
+                    </PermissionGuard>
                   </div>
                 )}
               </CardContent>
@@ -298,18 +314,24 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                     <Paperclip className="h-5 w-5" />
                     Attachments ({task.attachments?.length || 0})
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsAttachmentModalOpen(true)}
-                  >
-                    <Paperclip className="h-4 w-4 mr-2" />
-                    Manage Attachments
-                  </Button>
+                  <PermissionGuard permission="manage attachments">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAttachmentModalOpen(true)}
+                    >
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      Manage Attachments
+                    </Button>
+                  </PermissionGuard>
                 </div>
               </CardHeader>
               <CardContent>
-                {task.attachments && task.attachments.length > 0 ? (
+                {!can.viewAttachments() ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <p>You do not have permission to view attachments.</p>
+                  </div>
+                ) : task.attachments && task.attachments.length > 0 ? (
                   <div className="space-y-3">
                     {task.attachments.map((attachment: any) => (
                       <div key={attachment.id} className="flex items-start justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -397,15 +419,17 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                   <div className="text-center py-6 text-gray-500">
                     <Paperclip className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p>No attachments for this task yet.</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsAttachmentModalOpen(true)}
-                      className="mt-4"
-                    >
-                      <Paperclip className="h-4 w-4 mr-2" />
-                      Upload Files
-                    </Button>
+                    <PermissionGuard permission="manage attachments">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsAttachmentModalOpen(true)}
+                        className="mt-4"
+                      >
+                        <Paperclip className="h-4 w-4 mr-2" />
+                        Upload Files
+                      </Button>
+                    </PermissionGuard>
                   </div>
                 )}
               </CardContent>
@@ -421,35 +445,40 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add Comment Form */}
-                <form onSubmit={handleAddComment} className="space-y-3">
-                  <Textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    rows={3}
-                  />
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={!newComment.trim() || isSubmittingComment}>
-                      {isSubmittingComment ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Adding...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Add Comment
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
+                {can.viewComments() && (
+                  <>
+                    <form onSubmit={handleAddComment} className="space-y-3">
+                      <Textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Add a comment..."
+                        rows={3}
+                      />
+                      <div className="flex justify-end">
+                        <Button type="submit" disabled={!newComment.trim() || isSubmittingComment}>
+                          {isSubmittingComment ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Adding...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4 mr-2" />
+                              Add Comment
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
 
-                <Separator />
+                    <Separator />
+                  </>
+                )}
 
                 {/* Comments List */}
-                <div className="space-y-4">
-                  {task.comments?.map((comment: any) => (
+                {can.viewComments() ? (
+                  <div className="space-y-4">
+                    {task.comments?.map((comment: any) => (
                     <div key={comment.id} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -471,12 +500,17 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                         {comment.content}
                       </p>
                     </div>
-                  )) || (
-                    <p className="text-gray-500 text-center py-4">
-                      No comments yet. Be the first to add a comment!
-                    </p>
-                  )}
-                </div>
+                    )) || (
+                      <p className="text-gray-500 text-center py-4">
+                        No comments yet. Be the first to add a comment!
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <p>You do not have permission to view comments.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -489,39 +523,43 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Status
-                  </label>
-                  <Select value={task.status} onValueChange={handleStatusChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <PermissionGuard permission="change task status">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Status
+                    </label>
+                    <Select value={task.status} onValueChange={handleStatusChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PermissionGuard>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Priority
-                  </label>
-                  <Select value={task.priority} onValueChange={handlePriorityChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <PermissionGuard permission="change task priority">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Priority
+                    </label>
+                    <Select value={task.priority} onValueChange={handlePriorityChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PermissionGuard>
               </CardContent>
             </Card>
 

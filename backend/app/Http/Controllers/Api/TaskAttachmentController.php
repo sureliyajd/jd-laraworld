@@ -20,7 +20,26 @@ class TaskAttachmentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to view attachments
+        if (!$user->checkPermission('view attachments')) {
+            return response()->json([
+                'message' => 'You do not have permission to view attachments'
+            ], 403);
+        }
+        
         $query = TaskAttachment::with(['uploader', 'task']);
+        
+        // If task_id is provided, check if user can view that task
+        if ($request->has('task_id')) {
+            $task = Task::find($request->task_id);
+            if ($task && !$user->can('view', $task)) {
+                return response()->json([
+                    'message' => 'You do not have permission to view attachments for this task'
+                ], 403);
+            }
+        }
 
         // Apply filters
         if ($request->has('task_id')) {
@@ -78,6 +97,15 @@ class TaskAttachmentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to manage attachments
+        if (!$user->checkPermission('manage attachments')) {
+            return response()->json([
+                'message' => 'You do not have permission to upload attachments'
+            ], 403);
+        }
+        
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|max:10240', // 10MB max
             'task_id' => 'required|exists:tasks,id',
@@ -90,6 +118,14 @@ class TaskAttachmentController extends Controller
                 'message' => 'Validation failed',
                 'errors' => $validator->errors()
             ], 422);
+        }
+        
+        // Check if user can add attachments to this task
+        $task = Task::find($request->task_id);
+        if ($task && !$user->can('addAttachment', $task)) {
+            return response()->json([
+                'message' => 'You do not have permission to add attachments to this task'
+            ], 403);
         }
 
         try {
@@ -153,8 +189,25 @@ class TaskAttachmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TaskAttachment $taskAttachment): JsonResponse
+    public function show(Request $request, TaskAttachment $taskAttachment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to view attachments
+        if (!$user->checkPermission('view attachments')) {
+            return response()->json([
+                'message' => 'You do not have permission to view attachments'
+            ], 403);
+        }
+        
+        // Check if user can view the task this attachment belongs to
+        $task = $taskAttachment->task;
+        if ($task && !$user->can('viewAttachments', $task)) {
+            return response()->json([
+                'message' => 'You do not have permission to view attachments for this task'
+            ], 403);
+        }
+        
         $taskAttachment->load(['uploader', 'task']);
 
         return response()->json([
@@ -167,6 +220,18 @@ class TaskAttachmentController extends Controller
      */
     public function update(Request $request, TaskAttachment $taskAttachment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to manage attachments
+        if (!$user->checkPermission('manage attachments')) {
+            // Users can only update their own attachments if they don't have manage permissions
+            if ($taskAttachment->uploaded_by !== $user->id) {
+                return response()->json([
+                    'message' => 'You do not have permission to update this attachment'
+                ], 403);
+            }
+        }
+        
         $validator = Validator::make($request->all(), [
             'description' => 'nullable|string|max:1000',
             'is_public' => 'nullable|boolean',
@@ -241,10 +306,22 @@ class TaskAttachmentController extends Controller
      */
     public function destroy(Request $request, TaskAttachment $taskAttachment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to manage attachments
+        if (!$user->checkPermission('manage attachments')) {
+            // Users can only delete their own attachments if they don't have manage permissions
+            if ($taskAttachment->uploaded_by !== $user->id) {
+                return response()->json([
+                    'message' => 'You do not have permission to delete this attachment'
+                ], 403);
+            }
+        }
+        
         try {
             $attachmentId = $taskAttachment->id;
             $filename = $taskAttachment->filename;
-            $userId = $request->user()->id;
+            $userId = $user->id;
 
             // Delete the physical file
             if (Storage::disk($taskAttachment->disk)->exists($taskAttachment->file_path)) {
@@ -282,6 +359,19 @@ class TaskAttachmentController extends Controller
      */
     public function download(TaskAttachment $attachment, Request $request)
     {
+        $user = $request->user();
+        
+        // Check permission to view attachments
+        if (!$user->checkPermission('view attachments')) {
+            abort(403, 'You do not have permission to view attachments');
+        }
+        
+        // Check if user can view the task this attachment belongs to
+        $task = $attachment->task;
+        if ($task && !$user->can('viewAttachments', $task)) {
+            abort(403, 'You do not have permission to view attachments for this task');
+        }
+        
         if (!Storage::disk($attachment->disk)->exists($attachment->file_path)) {
             abort(404, 'File not found');
         }

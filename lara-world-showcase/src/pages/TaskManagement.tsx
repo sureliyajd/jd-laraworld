@@ -11,6 +11,8 @@ import { useTaskService } from '@/hooks/useTaskService';
 import TaskModal from '@/components/TaskModal';
 import TaskDetailModal from '@/components/TaskDetailModal';
 import { PermissionGuard } from '@/components/PermissionGuard';
+import { PublicUserNotice } from '@/components/PublicUserNotice';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface Task {
   id: number;
@@ -62,6 +64,7 @@ const TaskManagement: React.FC = () => {
     error, 
     fetchTasks 
   } = useTaskService();
+  const { isPublicUser } = usePermissions();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -179,6 +182,9 @@ const TaskManagement: React.FC = () => {
           </Button>
         </PermissionGuard>
       </div>
+
+      {/* Public User Notice */}
+      {isPublicUser() && <PublicUserNotice />}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

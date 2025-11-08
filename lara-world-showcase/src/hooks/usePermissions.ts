@@ -57,6 +57,13 @@ export const usePermissions = () => {
   };
 
   /**
+   * Check if user is a public user (demo account)
+   */
+  const isPublicUser = (): boolean => {
+    return hasRole('public');
+  };
+
+  /**
    * Permission checkers for specific modules
    */
   const can = {
@@ -100,6 +107,7 @@ export const usePermissions = () => {
     hasAllPermissions,
     hasRole,
     isSuperAdmin,
+    isPublicUser,
     can,
     isLoading: !user,
   };

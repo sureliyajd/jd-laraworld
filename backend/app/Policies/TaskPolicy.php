@@ -136,12 +136,42 @@ class TaskPolicy
     }
 
     /**
+     * Determine whether the user can change the priority of the task.
+     */
+    public function changePriority(User $user, Task $task): bool
+    {
+        // Check permission to change task priority
+        if (!$user->checkPermission('change task priority')) {
+            return false;
+        }
+        
+        // Users can change priority if they:
+        // 1. Created the task
+        // 2. Are assigned to the task
+        // 3. Are assigned as collaborator
+        return $user->id === $task->created_by ||
+               $user->id === $task->assigned_to ||
+               $task->assignments()->where('user_id', $user->id)
+                   ->whereIn('role', ['assignee', 'collaborator'])
+                   ->exists();
+    }
+
+    /**
      * Determine whether the user can add comments to the task.
      */
     public function addComment(User $user, Task $task): bool
     {
         // Users can add comments if they can view the task and have permission
         return $user->checkPermission('view comments') && $this->view($user, $task);
+    }
+
+    /**
+     * Determine whether the user can view attachments on the task.
+     */
+    public function viewAttachments(User $user, Task $task): bool
+    {
+        // Users can view attachments if they can view the task and have permission
+        return $user->checkPermission('view attachments') && $this->view($user, $task);
     }
 
     /**

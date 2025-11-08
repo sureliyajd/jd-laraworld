@@ -21,6 +21,12 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
+     * The default guard name for Spatie Permission package
+     * This ensures all permission/role checks use the 'api' guard
+     */
+    protected $guard_name = 'api';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -148,29 +154,26 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('super_admin', 'api');
+        return $this->hasRole('super_admin');
     }
 
     /**
      * Check if user has a permission (ensures roles and permissions are loaded)
      * This is a wrapper around hasPermissionTo that ensures data is loaded
+     * Since we set $guard_name = 'api', we don't need to specify the guard
      */
     public function checkPermission(string $permission): bool
     {
-        // Ensure roles and permissions are loaded for 'api' guard
+        // Ensure roles and permissions are loaded
         if (!$this->relationLoaded('roles')) {
-            $this->load(['roles' => function ($query) {
-                $query->where('guard_name', 'api');
-            }]);
+            $this->load('roles.permissions');
         }
         if (!$this->relationLoaded('permissions')) {
-            $this->load(['permissions' => function ($query) {
-                $query->where('guard_name', 'api');
-            }]);
+            $this->load('permissions');
         }
         
-        // Use hasPermissionTo with 'api' guard which checks both direct permissions and role permissions
-        return $this->hasPermissionTo($permission, 'api');
+        // Use hasPermissionTo which will use the default 'api' guard
+        return $this->hasPermissionTo($permission);
     }
 
     /**

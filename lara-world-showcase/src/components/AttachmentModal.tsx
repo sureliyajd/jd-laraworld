@@ -25,6 +25,8 @@ import {
   Maximize2
 } from 'lucide-react';
 import { useAttachmentService } from '@/hooks/useAttachmentService';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PublicUserNotice } from './PublicUserNotice';
 import type { TaskAttachment, CreateAttachmentData, UpdateAttachmentData } from '@/types/attachment';
 import { AUTH_CONFIG } from '@/config/auth';
 
@@ -44,6 +46,7 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
   onAttachmentChanged,
 }) => {
   const { fetchTaskAttachments, uploadAttachment, updateAttachment, deleteAttachment, downloadAttachment, validateFile, formatFileSize, getFileIcon } = useAttachmentService();
+  const { isPublicUser } = usePermissions();
   
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -278,6 +281,10 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
+        )}
+
+        {isPublicUser() && (
+          <PublicUserNotice variant="compact" />
         )}
 
         {/* Current Attachments */}

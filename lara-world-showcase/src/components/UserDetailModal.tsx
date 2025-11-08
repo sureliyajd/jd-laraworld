@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Edit, X, Mail, Calendar, CheckCircle, XCircle, User as UserIcon } from 'lucide-react';
 import { useUserService } from '@/hooks/useUserService';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import type { User } from '@/types/user';
 
 interface UserDetailModalProps {
@@ -26,6 +28,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
   onEditUser,
 }) => {
   const { fetchUser } = useUserService();
+  const { can } = usePermissions();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -262,10 +265,12 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
             <X className="h-4 w-4 mr-2" />
             Close
           </Button>
-          <Button onClick={handleEdit} className="bg-blue-600 hover:bg-blue-700">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit User
-          </Button>
+          <PermissionGuard permission="edit users">
+            <Button onClick={handleEdit} className="bg-blue-600 hover:bg-blue-700">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit User
+            </Button>
+          </PermissionGuard>
         </div>
       </DialogContent>
     </Dialog>

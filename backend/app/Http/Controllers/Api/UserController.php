@@ -27,6 +27,11 @@ class UserController extends Controller
     {
         $user = $request->user();
         
+        // Load user roles to check role-based filtering
+        if (!$user->relationLoaded('roles')) {
+            $user->load('roles');
+        }
+        
         // Check permission to view users
         if (!$user->checkPermission('view all users') && !$user->checkPermission('view users')) {
             return response()->json([
@@ -41,20 +46,32 @@ class UserController extends Controller
             $q->where('name', 'super_admin');
         });
 
-        // If user can only view their own users (not all users), filter by parent hierarchy
-        if ($user->checkPermission('view users') && !$user->checkPermission('view all users')) {
-            // Users can see themselves and their children
-            $query->where(function ($q) use ($user) {
-                $q->where('id', $user->id)
-                  ->orWhere('parent_id', $user->id)
-                  ->orWhere(function ($subQ) use ($user) {
-                      // Include users in the hierarchy if current user is a child
-                      if ($user->parent_id) {
-                          $subQ->where('parent_id', $user->parent_id);
-                      }
-                  });
-            });
+        // Filter users based on role and parent hierarchy
+        if (!$user->checkPermission('view all users')) {
+            // Check if user has visitor role
+            $userRole = $user->roles->first();
+            $isVisitor = $userRole && $userRole->name === 'visitor';
+            
+            if ($isVisitor) {
+                // Visitor role users have specific filtering rules
+                if ($user->parent_id === null) {
+                    // Visitor user is a parent: show only users with this user's parent_id (their children)
+                    $query->where('parent_id', $user->id);
+                } else {
+                    // Visitor user is not a parent (has a parent_id): show only their own profile
+                    $query->where('id', $user->id);
+                }
+            } else {
+                // Non-visitor users with "view users" permission: see themselves and their children
+                if ($user->checkPermission('view users')) {
+                    $query->where(function ($q) use ($user) {
+                        $q->where('id', $user->id)
+                          ->orWhere('parent_id', $user->id);
+                    });
+                }
+            }
         }
+        // If user has "view all users" permission, they see all users (no additional filtering)
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -224,6 +241,7 @@ class UserController extends Controller
             $roleName = $request->input('role', 'visitor');
             // Prevent assigning super_admin role
             if ($roleName !== 'super_admin') {
+                // Since User model has $guard_name = 'api', we can use assignRole with role name
                 $role = Role::where('name', $roleName)->where('guard_name', 'api')->first();
                 if ($role) {
                     $user->assignRole($role);
@@ -308,6 +326,11 @@ class UserController extends Controller
     {
         $currentUser = $request->user();
         
+        // Load user roles to check role-based filtering
+        if (!$currentUser->relationLoaded('roles')) {
+            $currentUser->load('roles');
+        }
+        
         // Check permission to view users
         if (!$currentUser->checkPermission('view all users') && !$currentUser->checkPermission('view users')) {
             return response()->json([
@@ -315,16 +338,38 @@ class UserController extends Controller
             ], 403);
         }
         
-        // If user can only view their own users, check if this user is in their hierarchy
-        if ($currentUser->checkPermission('view users') && !$currentUser->checkPermission('view all users')) {
-            $canView = $user->id === $currentUser->id 
-                || $user->parent_id === $currentUser->id
-                || ($currentUser->parent_id && $user->parent_id === $currentUser->parent_id);
+        // Filter based on role and parent hierarchy
+        if (!$currentUser->checkPermission('view all users')) {
+            // Check if user has visitor role
+            $userRole = $currentUser->roles->first();
+            $isVisitor = $userRole && $userRole->name === 'visitor';
             
-            if (!$canView) {
-                return response()->json([
-                    'message' => 'You do not have permission to view this user'
-                ], 403);
+            if ($isVisitor) {
+                // Visitor role users have specific viewing rules
+                if ($currentUser->parent_id === null) {
+                    // Visitor user is a parent: can only view users with this user's parent_id (their children)
+                    if ($user->parent_id !== $currentUser->id) {
+                        return response()->json([
+                            'message' => 'You do not have permission to view this user'
+                        ], 403);
+                    }
+                } else {
+                    // Visitor user is not a parent (has a parent_id): can only view their own profile
+                    if ($user->id !== $currentUser->id) {
+                        return response()->json([
+                            'message' => 'You do not have permission to view this user'
+                        ], 403);
+                    }
+                }
+            } else {
+                // Non-visitor users with "view users" permission: can view themselves or their children
+                if ($currentUser->checkPermission('view users')) {
+                    if ($user->id !== $currentUser->id && $user->parent_id !== $currentUser->id) {
+                        return response()->json([
+                            'message' => 'You do not have permission to view this user'
+                        ], 403);
+                    }
+                }
             }
         }
         
@@ -347,16 +392,43 @@ class UserController extends Controller
             ], 403);
         }
         
-        // If user can't view all users, they can only edit users in their hierarchy
+        // Load user roles to check role-based filtering
+        if (!$currentUser->relationLoaded('roles')) {
+            $currentUser->load('roles');
+        }
+        
+        // Filter based on role and parent hierarchy for editing
         if (!$currentUser->checkPermission('view all users')) {
-            $canEdit = $user->id === $currentUser->id 
-                || $user->parent_id === $currentUser->id
-                || ($currentUser->parent_id && $user->parent_id === $currentUser->parent_id);
+            // Check if user has visitor role
+            $userRole = $currentUser->roles->first();
+            $isVisitor = $userRole && $userRole->name === 'visitor';
             
-            if (!$canEdit) {
-                return response()->json([
-                    'message' => 'You do not have permission to edit this user'
-                ], 403);
+            if ($isVisitor) {
+                // Visitor role users have specific editing rules
+                if ($currentUser->parent_id === null) {
+                    // Visitor user is a parent: can only edit users with this user's parent_id (their children)
+                    if ($user->parent_id !== $currentUser->id) {
+                        return response()->json([
+                            'message' => 'You do not have permission to edit this user'
+                        ], 403);
+                    }
+                } else {
+                    // Visitor user is not a parent (has a parent_id): can only edit their own profile
+                    if ($user->id !== $currentUser->id) {
+                        return response()->json([
+                            'message' => 'You do not have permission to edit this user'
+                        ], 403);
+                    }
+                }
+            } else {
+                // Non-visitor users: can edit themselves or their children
+                $canEdit = $user->id === $currentUser->id || $user->parent_id === $currentUser->id;
+                
+                if (!$canEdit) {
+                    return response()->json([
+                        'message' => 'You do not have permission to edit this user'
+                    ], 403);
+                }
             }
         }
         
@@ -382,6 +454,7 @@ class UserController extends Controller
                 $roleName = $request->input('role');
                 // Prevent assigning super_admin role
                 if ($roleName && $roleName !== 'super_admin') {
+                    // Since User model has $guard_name = 'api', roles will use api guard
                     $role = Role::where('name', $roleName)->where('guard_name', 'api')->first();
                     if ($role) {
                         $user->syncRoles([$role]);
@@ -456,15 +529,42 @@ class UserController extends Controller
             ], 403);
         }
         
-        // If user can't view all users, they can only delete users in their hierarchy
+        // Load user roles to check role-based filtering
+        if (!$currentUser->relationLoaded('roles')) {
+            $currentUser->load('roles');
+        }
+        
+        // Filter based on role and parent hierarchy for deletion
         if (!$currentUser->checkPermission('view all users')) {
-            $canDelete = $user->parent_id === $currentUser->id
-                || ($currentUser->parent_id && $user->parent_id === $currentUser->parent_id);
+            // Check if user has visitor role
+            $userRole = $currentUser->roles->first();
+            $isVisitor = $userRole && $userRole->name === 'visitor';
             
-            if (!$canDelete) {
-                return response()->json([
-                    'message' => 'You do not have permission to delete this user'
-                ], 403);
+            if ($isVisitor) {
+                // Visitor role users have specific deletion rules
+                if ($currentUser->parent_id === null) {
+                    // Visitor user is a parent: can only delete users with this user's parent_id (their children)
+                    if ($user->parent_id !== $currentUser->id) {
+                        return response()->json([
+                            'message' => 'You do not have permission to delete this user'
+                        ], 403);
+                    }
+                } else {
+                    // Visitor user is not a parent (has a parent_id): cannot delete anyone
+                    // (they can only see themselves and cannot delete themselves per check above)
+                    return response()->json([
+                        'message' => 'You do not have permission to delete this user'
+                    ], 403);
+                }
+            } else {
+                // Non-visitor users: can delete their children
+                $canDelete = $user->parent_id === $currentUser->id;
+                
+                if (!$canDelete) {
+                    return response()->json([
+                        'message' => 'You do not have permission to delete this user'
+                    ], 403);
+                }
             }
         }
 
@@ -530,17 +630,33 @@ class UserController extends Controller
             $q->where('name', 'super_admin');
         });
         
+        // Load user roles to check role-based filtering
+        if (!$user->relationLoaded('roles')) {
+            $user->load('roles');
+        }
+        
         // If user can only view their own users, filter by parent hierarchy
         if ($user->checkPermission('view users') && !$user->checkPermission('view all users')) {
-            $baseQuery->where(function ($q) use ($user) {
-                $q->where('id', $user->id)
-                  ->orWhere('parent_id', $user->id)
-                  ->orWhere(function ($subQ) use ($user) {
-                      if ($user->parent_id) {
-                          $subQ->where('parent_id', $user->parent_id);
-                      }
-                  });
-            });
+            // Check if user has visitor role
+            $userRole = $user->roles->first();
+            $isVisitor = $userRole && $userRole->name === 'visitor';
+            
+            if ($isVisitor) {
+                // Visitor role users have specific filtering rules
+                if ($user->parent_id === null) {
+                    // Visitor user is a parent: show only users with this user's parent_id (their children)
+                    $baseQuery->where('parent_id', $user->id);
+                } else {
+                    // Visitor user is not a parent (has a parent_id): show only their own profile
+                    $baseQuery->where('id', $user->id);
+                }
+            } else {
+                // Non-visitor users with "view users" permission: see themselves and their children
+                $baseQuery->where(function ($q) use ($user) {
+                    $q->where('id', $user->id)
+                      ->orWhere('parent_id', $user->id);
+                });
+            }
         }
 
         $totalUsers = (clone $baseQuery)->count();
@@ -578,12 +694,52 @@ class UserController extends Controller
      */
     public function all(Request $request): JsonResponse
     {
-        $users = User::select('id', 'name', 'email')
+        $user = $request->user();
+        
+        // Check permission to view users
+        if (!$user->checkPermission('view all users') && !$user->checkPermission('view users')) {
+            return response()->json([
+                'message' => 'You do not have permission to view users'
+            ], 403);
+        }
+        
+        $query = User::select('id', 'name', 'email')
             ->whereDoesntHave('roles', function ($q) {
                 $q->where('name', 'super_admin');
-            })
-            ->orderBy('name')
-            ->get();
+            });
+        
+        // Apply filtering based on permissions
+        if (!$user->checkPermission('view all users')) {
+            // Load user roles to check role-based filtering
+            if (!$user->relationLoaded('roles')) {
+                $user->load('roles');
+            }
+            
+            // Check if user has visitor role
+            $userRole = $user->roles->first();
+            $isVisitor = $userRole && $userRole->name === 'visitor';
+            
+            if ($isVisitor) {
+                // Visitor role users have specific filtering rules
+                if ($user->parent_id === null) {
+                    // Visitor user is a parent: show only users with this user's parent_id (their children)
+                    $query->where('parent_id', $user->id);
+                } else {
+                    // Visitor user is not a parent (has a parent_id): show only their own profile
+                    $query->where('id', $user->id);
+                }
+            } else {
+                // Non-visitor users with "view users" permission: see themselves and their children
+                if ($user->checkPermission('view users')) {
+                    $query->where(function ($q) use ($user) {
+                        $q->where('id', $user->id)
+                          ->orWhere('parent_id', $user->id);
+                    });
+                }
+            }
+        }
+        
+        $users = $query->orderBy('name')->get();
 
         return response()->json([
             'data' => $users
@@ -595,6 +751,15 @@ class UserController extends Controller
      */
     public function roles(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to view roles
+        if (!$user->checkPermission('view roles') && !$user->checkPermission('assign roles')) {
+            return response()->json([
+                'message' => 'You do not have permission to view roles'
+            ], 403);
+        }
+        
         $roles = Role::where('guard_name', 'api')
             ->where('name', '!=', 'super_admin')
             ->select('id', 'name')

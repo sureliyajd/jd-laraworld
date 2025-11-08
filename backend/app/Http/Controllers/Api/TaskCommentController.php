@@ -19,7 +19,26 @@ class TaskCommentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to view comments
+        if (!$user->checkPermission('view comments')) {
+            return response()->json([
+                'message' => 'You do not have permission to view comments'
+            ], 403);
+        }
+        
         $query = TaskComment::with(['user', 'task', 'parent', 'replies']);
+        
+        // If task_id is provided, check if user can view that task
+        if ($request->has('task_id')) {
+            $task = Task::find($request->task_id);
+            if ($task && !$user->can('view', $task)) {
+                return response()->json([
+                    'message' => 'You do not have permission to view comments for this task'
+                ], 403);
+            }
+        }
 
         // Apply filters
         if ($request->has('task_id')) {
@@ -142,8 +161,28 @@ class TaskCommentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TaskComment $taskComment): JsonResponse
+    public function show(Request $request, TaskComment $taskComment): JsonResponse
     {
+        $user = $request->user();
+        
+        // Check permission to view comments
+        if (!$user->checkPermission('view comments')) {
+            return response()->json([
+                'message' => 'You do not have permission to view comments'
+            ], 403);
+        }
+        
+        // Check if user can view the task this comment belongs to
+        $task = $taskComment->task;
+        if ($task) {
+            // Use policy to check if user can view the task
+            if (!$user->can('view', $task)) {
+                return response()->json([
+                    'message' => 'You do not have permission to view comments for this task'
+                ], 403);
+            }
+        }
+        
         $taskComment->load(['user', 'task', 'parent', 'replies.user']);
 
         return response()->json([

@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Calendar, Clock, User, Tag, Save, X, Users, Paperclip } from 'lucide-react';
 import { useTaskService } from '@/hooks/useTaskService';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PublicUserNotice } from './PublicUserNotice';
 import AssignmentModal from './AssignmentModal';
 import AttachmentModal from './AttachmentModal';
 
@@ -20,6 +22,7 @@ interface TaskModalProps {
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSaved }) => {
   const { createTask, updateTask, categories, loading, error } = useTaskService();
+  const { isPublicUser } = usePermissions();
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -142,6 +145,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onTaskSave
               {error}
             </AlertDescription>
           </Alert>
+        )}
+
+        {isPublicUser() && (
+          <PublicUserNotice variant="compact" />
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">

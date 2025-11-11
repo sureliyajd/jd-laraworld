@@ -5,8 +5,8 @@ export interface EmailLog {
   recipient_email: string;
   recipient_name: string | null;
   subject: string;
-  body: string;
-  html_body: string | null;
+  body: string; // Supports both plain text and HTML
+  html_body: string | null; // Deprecated: kept for backward compatibility
   status: 'pending' | 'sent' | 'failed' | 'bounced';
   status_label: string;
   error_message: string | null;
@@ -38,8 +38,7 @@ export interface SendEmailData {
   recipient_email: string;
   recipient_name?: string;
   subject: string;
-  body: string;
-  html_body?: string;
+  body: string; // Supports both plain text and HTML
   cc?: string[];
   bcc?: string[];
 }

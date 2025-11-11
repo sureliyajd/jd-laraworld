@@ -29,7 +29,6 @@ class SendEmailJob implements ShouldQueue
         public string $to,
         public string $subject,
         public string $body,
-        public ?string $htmlBody = null,
         public ?string $recipientName = null,
         public ?array $cc = null,
         public ?array $bcc = null,
@@ -62,18 +61,41 @@ class SendEmailJob implements ShouldQueue
                 Log::info('Using configured mailer', [
                     'mailer_id' => $activeMailer->id,
                     'provider' => $activeMailer->provider,
+                    'from_address' => $activeMailer->from_address,
                 ]);
             } else {
                 // Use default Laravel mail configuration
                 $mailerService->useMailer(null);
-                Log::info('Using default Laravel mail configuration');
+                $defaultMailer = config('mail.default');
+                Log::info('Using default Laravel mail configuration', [
+                    'mailer' => $defaultMailer,
+                    'from_address' => config('mail.from.address'),
+                    'from_name' => config('mail.from.name'),
+                ]);
+            }
+
+            // Log current mail configuration for debugging
+            $currentMailer = config('mail.default');
+            Log::info('Current mail configuration', [
+                'default_mailer' => $currentMailer,
+                'smtp_host' => config('mail.mailers.smtp.host'),
+                'smtp_port' => config('mail.mailers.smtp.port'),
+                'smtp_username' => config('mail.mailers.smtp.username') ? '***' : null,
+                'smtp_encryption' => config('mail.mailers.smtp.encryption'),
+            ]);
+
+            // Warn if using log mailer (emails won't actually be sent)
+            if ($currentMailer === 'log') {
+                Log::warning('Using log mailer - emails will be logged but not actually sent', [
+                    'to' => $this->to,
+                    'subject' => $this->subject,
+                ]);
             }
 
             // Create email
             $mail = new CustomEmail(
                 subject: $this->subject,
                 body: $this->body,
-                htmlBody: $this->htmlBody,
                 recipientName: $this->recipientName
             );
 
@@ -93,26 +115,59 @@ class SendEmailJob implements ShouldQueue
                 }
             }
 
-            // Send email
-            Mail::send($mail);
-
-            // Update email log if provided
-            if ($this->emailLogId) {
-                $emailLog = \App\Models\EmailLog::find($this->emailLogId);
-                if ($emailLog) {
-                    $emailLog->update([
-                        'status' => 'sent',
-                        'sent_at' => now(),
-                        'mailer_id' => $activeMailer?->id,
+            // Send email with explicit error handling
+            try {
+                // Send using the configured default mailer
+                // Mail::send() will use the default mailer configured above
+                Mail::send($mail);
+                
+                // Note: Mail::failures() only works with SwiftMailer (Laravel < 9)
+                // For Laravel 9+, exceptions are thrown directly
+                // Check if we're using log mailer (emails logged but not sent)
+                if ($currentMailer === 'log') {
+                    Log::info('Email logged (log mailer) - check storage/logs/laravel.log for email content', [
+                        'to' => $this->to,
+                        'subject' => $this->subject,
                     ]);
                 }
-            }
 
-            Log::info('Email sent successfully', [
-                'to' => $this->to,
-                'subject' => $this->subject,
-                'mailer_id' => $activeMailer?->id,
-            ]);
+                Log::info('Email sent successfully', [
+                    'to' => $this->to,
+                    'subject' => $this->subject,
+                    'mailer_id' => $activeMailer?->id,
+                    'mailer_type' => config('mail.default'),
+                ]);
+
+                // Update email log if provided
+                if ($this->emailLogId) {
+                    $emailLog = \App\Models\EmailLog::find($this->emailLogId);
+                    if ($emailLog) {
+                        $emailLog->update([
+                            'status' => 'sent',
+                            'sent_at' => now(),
+                            'mailer_id' => $activeMailer?->id,
+                        ]);
+                    }
+                }
+            } catch (\Symfony\Component\Mailer\Exception\TransportExceptionInterface $e) {
+                // Catch Symfony Mailer transport errors (Laravel 9+)
+                Log::error('Mail Transport Exception', [
+                    'to' => $this->to,
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'class' => get_class($e),
+                ]);
+                throw $e;
+            } catch (\Exception $e) {
+                // Catch any other mail sending errors
+                Log::error('Mail sending exception', [
+                    'to' => $this->to,
+                    'error' => $e->getMessage(),
+                    'class' => get_class($e),
+                    'trace' => substr($e->getTraceAsString(), 0, 500), // Limit trace length
+                ]);
+                throw $e;
+            }
 
         } catch (\Exception $e) {
             Log::error('Failed to send email', [
@@ -120,6 +175,7 @@ class SendEmailJob implements ShouldQueue
                 'subject' => $this->subject,
                 'mailer_id' => $this->mailer?->id,
                 'error' => $e->getMessage(),
+                'error_class' => get_class($e),
                 'trace' => $e->getTraceAsString(),
             ]);
 

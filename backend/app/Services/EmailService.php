@@ -16,8 +16,7 @@ class EmailService
      *
      * @param string|array $to Recipient email(s)
      * @param string $subject Email subject
-     * @param string $body Email body (plain text)
-     * @param string|null $htmlBody HTML body (optional)
+     * @param string $body Email body (supports both plain text and HTML)
      * @param array $options Additional options (cc, bcc, recipientName, user, mailer, queue, sync)
      * @return EmailLog|null
      */
@@ -25,7 +24,6 @@ class EmailService
         string|array $to,
         string $subject,
         string $body,
-        ?string $htmlBody = null,
         array $options = []
     ): ?EmailLog {
         // Extract options
@@ -46,7 +44,6 @@ class EmailService
                     $email,
                     $subject,
                     $body,
-                    $htmlBody,
                     array_merge($options, ['log' => $logEmail])
                 );
             }
@@ -63,7 +60,7 @@ class EmailService
                     'recipient_name' => $recipientName,
                     'subject' => $subject,
                     'body' => $body,
-                    'html_body' => $htmlBody,
+                    'html_body' => null, // Deprecated: body now supports HTML
                     'status' => 'pending',
                     'metadata' => [
                         'cc' => $cc,
@@ -85,7 +82,6 @@ class EmailService
                 $to,
                 $subject,
                 $body,
-                $htmlBody,
                 $recipientName,
                 $cc,
                 $bcc,
@@ -101,7 +97,6 @@ class EmailService
                 $to,
                 $subject,
                 $body,
-                $htmlBody,
                 $recipientName,
                 $cc,
                 $bcc,
@@ -121,12 +116,11 @@ class EmailService
         string $to,
         string $subject,
         string $body,
-        ?string $htmlBody = null,
         ?User $user = null,
         ?Mailer $mailer = null,
         array $options = []
     ): ?EmailLog {
-        return self::send($to, $subject, $body, $htmlBody, array_merge($options, [
+        return self::send($to, $subject, $body, array_merge($options, [
             'user' => $user,
             'mailer' => $mailer,
         ]));
@@ -139,14 +133,13 @@ class EmailService
         array $to,
         string $subject,
         string $body,
-        ?string $htmlBody = null,
         ?User $user = null,
         ?Mailer $mailer = null,
         array $options = []
     ): array {
         $emailLogs = [];
         foreach ($to as $email) {
-            $emailLogs[] = self::send($email, $subject, $body, $htmlBody, array_merge($options, [
+            $emailLogs[] = self::send($email, $subject, $body, array_merge($options, [
                 'user' => $user,
                 'mailer' => $mailer,
             ]));

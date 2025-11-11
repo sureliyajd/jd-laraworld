@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -22,6 +21,8 @@ import {
   Search,
   Filter
 } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { emailService, EmailLog, SendEmailData } from '@/services/emailService';
 import { useToast } from '@/hooks/use-toast';
 import { PermissionGuard } from '@/components/PermissionGuard';
@@ -47,7 +48,6 @@ const MailCommandCenter: React.FC = () => {
     recipient_name: '',
     subject: '',
     body: '',
-    html_body: '',
   });
   const [sending, setSending] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -92,22 +92,37 @@ const MailCommandCenter: React.FC = () => {
     }
   };
 
+  const resetComposeForm = () => {
+    setComposeForm({
+      recipient_email: '',
+      recipient_name: '',
+      subject: '',
+      body: '',
+    });
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsComposeOpen(open);
+    if (!open) {
+      resetComposeForm();
+    }
+  };
+
   const handleSendEmail = async () => {
     try {
       setSending(true);
-      await emailService.sendEmail(composeForm);
+      // Body now supports HTML directly, no need to separate plain text and HTML
+      const emailData: SendEmailData = {
+        ...composeForm,
+      };
+      
+      await emailService.sendEmail(emailData);
       toast({
         title: 'Success',
         description: 'Email sent successfully',
       });
       setIsComposeOpen(false);
-      setComposeForm({
-        recipient_email: '',
-        recipient_name: '',
-        subject: '',
-        body: '',
-        html_body: '',
-      });
+      resetComposeForm();
       fetchEmailLogs();
       fetchStatistics();
     } catch (err) {
@@ -370,7 +385,9 @@ const MailCommandCenter: React.FC = () => {
                           <strong>Body:</strong>
                           <div 
                             className="mt-2 prose max-w-none"
-                            dangerouslySetInnerHTML={{ __html: log.html_body || log.body.replace(/\n/g, '<br>') }}
+                            dangerouslySetInnerHTML={{ 
+                              __html: log.html_body || (log.body && /<[a-z][\s\S]*>/i.test(log.body) ? log.body : log.body.replace(/\n/g, '<br>'))
+                            }}
                           />
                         </div>
                         {log.error_message && (
@@ -416,7 +433,7 @@ const MailCommandCenter: React.FC = () => {
           </div>
 
           {/* Compose Email Dialog */}
-          <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+          <Dialog open={isComposeOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Compose Email</DialogTitle>
@@ -455,29 +472,36 @@ const MailCommandCenter: React.FC = () => {
             </div>
             <div>
               <Label htmlFor="body">Email Body *</Label>
-              <Textarea
-                id="body"
-                value={composeForm.body}
-                onChange={(e) => setComposeForm({ ...composeForm, body: e.target.value })}
-                placeholder="Email content"
-                rows={10}
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Note: For rich text editing, you can install a library like react-quill or @tiptap/react
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="html_body">HTML Body (Optional)</Label>
-              <Textarea
-                id="html_body"
-                value={composeForm.html_body}
-                onChange={(e) => setComposeForm({ ...composeForm, html_body: e.target.value })}
-                placeholder="HTML content"
-                rows={10}
-              />
+              <div className="mt-2 [&_.ql-container]:min-h-[200px] [&_.ql-container]:border-gray-300 [&_.ql-toolbar]:border-gray-300 [&_.ql-toolbar]:rounded-t-md [&_.ql-container]:rounded-b-md">
+                <ReactQuill
+                  theme="snow"
+                  value={composeForm.body}
+                  onChange={(value) => setComposeForm({ ...composeForm, body: value })}
+                  placeholder="Compose your email here..."
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      [{ 'color': [] }, { 'background': [] }],
+                      [{ 'align': [] }],
+                      ['link', 'image'],
+                      ['clean']
+                    ],
+                  }}
+                  formats={[
+                    'header',
+                    'bold', 'italic', 'underline', 'strike',
+                    'list', 'bullet',
+                    'color', 'background',
+                    'align',
+                    'link', 'image'
+                  ]}
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
+              <Button variant="outline" onClick={() => handleDialogClose(false)}>
                 Cancel
               </Button>
               <Button onClick={handleSendEmail} disabled={sending}>
@@ -526,7 +550,7 @@ const MailCommandCenter: React.FC = () => {
                 <div 
                   className="mt-2 p-4 bg-gray-50 rounded-lg prose max-w-none"
                   dangerouslySetInnerHTML={{ 
-                    __html: selectedEmail.html_body || selectedEmail.body.replace(/\n/g, '<br>') 
+                    __html: selectedEmail.html_body || (selectedEmail.body && /<[a-z][\s\S]*>/i.test(selectedEmail.body) ? selectedEmail.body : selectedEmail.body.replace(/\n/g, '<br>'))
                   }}
                 />
               </div>

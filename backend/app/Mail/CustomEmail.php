@@ -17,12 +17,11 @@ class CustomEmail extends Mailable
      * Create a new message instance.
      */
     public function __construct(
-        public string $subject,
+        string $subject,
         public string $body,
-        public ?string $htmlBody = null,
         public ?string $recipientName = null
     ) {
-        //
+        $this->subject = $subject;
     }
 
     /**
@@ -36,16 +35,26 @@ class CustomEmail extends Mailable
     }
 
     /**
+     * Check if body contains HTML tags.
+     */
+    private function isHtml(string $text): bool
+    {
+        return $text !== strip_tags($text);
+    }
+
+    /**
      * Get the message content definition.
      */
     public function content(): Content
     {
-        if ($this->htmlBody) {
+        // If body contains HTML, use it as HTML content
+        if ($this->isHtml($this->body)) {
             return new Content(
-                htmlString: $this->htmlBody,
+                htmlString: $this->body,
             );
         }
 
+        // Otherwise, use plain text view
         return new Content(
             text: 'emails.plain-text',
             with: [

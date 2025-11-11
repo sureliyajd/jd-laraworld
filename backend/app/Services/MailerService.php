@@ -221,7 +221,6 @@ class MailerService
             $testMail = new \App\Mail\CustomEmail(
                 subject: 'Test Email - ' . $mailer->name,
                 body: 'This is a test email from your mailer configuration. If you received this, your mailer is working correctly!',
-                htmlBody: null,
                 recipientName: null
             );
 
@@ -281,15 +280,144 @@ class MailerService
         if ($mailer) {
             $this->configureMailer($mailer);
         } else {
-            // Use default Laravel configuration
-            // Reset to default mail configuration from .env
+            // Use default Laravel configuration from .env
+            $this->configureFromEnv();
+        }
+    }
+
+    /**
+     * Configure mailer from environment variables.
+     */
+    protected function configureFromEnv(): void
+    {
             $defaultMailer = env('MAIL_MAILER', 'log');
+        
+        // Set default mailer
             Config::set('mail.default', $defaultMailer);
             
-            // Reset from address to default
+        // Set from address
             Config::set('mail.from.address', env('MAIL_FROM_ADDRESS', 'hello@example.com'));
             Config::set('mail.from.name', env('MAIL_FROM_NAME', 'Example'));
+        
+        // Configure mailer based on type
+        switch ($defaultMailer) {
+            case 'smtp':
+                $this->configureSmtpFromEnv();
+                break;
+            case 'mailgun':
+                $this->configureMailgunFromEnv();
+                break;
+            case 'ses':
+                $this->configureSesFromEnv();
+                break;
+            case 'postmark':
+                $this->configurePostmarkFromEnv();
+                break;
+            case 'resend':
+                $this->configureResendFromEnv();
+                break;
+            case 'sendmail':
+                $this->configureSendmailFromEnv();
+                break;
+            case 'log':
+                $this->configureLogFromEnv();
+                break;
+            default:
+                // For unknown mailers, just set the default
+                Log::warning('Unknown mailer type in MAIL_MAILER', ['mailer' => $defaultMailer]);
+                break;
         }
+    }
+
+    /**
+     * Configure SMTP mailer from environment variables.
+     */
+    protected function configureSmtpFromEnv(): void
+    {
+        Config::set('mail.mailers.smtp', [
+            'transport' => 'smtp',
+            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'port' => env('MAIL_PORT', 587),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'timeout' => env('MAIL_TIMEOUT'),
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ]);
+    }
+
+    /**
+     * Configure Mailgun mailer from environment variables.
+     */
+    protected function configureMailgunFromEnv(): void
+    {
+        Config::set('services.mailgun.domain', env('MAILGUN_DOMAIN'));
+        Config::set('services.mailgun.secret', env('MAILGUN_SECRET'));
+        Config::set('services.mailgun.endpoint', env('MAILGUN_ENDPOINT', 'api.mailgun.net'));
+        
+        Config::set('mail.mailers.mailgun', [
+            'transport' => 'mailgun',
+        ]);
+    }
+
+    /**
+     * Configure AWS SES mailer from environment variables.
+     */
+    protected function configureSesFromEnv(): void
+    {
+        Config::set('services.ses.key', env('AWS_ACCESS_KEY_ID'));
+        Config::set('services.ses.secret', env('AWS_SECRET_ACCESS_KEY'));
+        Config::set('services.ses.region', env('AWS_DEFAULT_REGION', 'us-east-1'));
+        
+        Config::set('mail.mailers.ses', [
+            'transport' => 'ses',
+        ]);
+    }
+
+    /**
+     * Configure Postmark mailer from environment variables.
+     */
+    protected function configurePostmarkFromEnv(): void
+    {
+        Config::set('services.postmark.token', env('POSTMARK_TOKEN'));
+        
+        Config::set('mail.mailers.postmark', [
+            'transport' => 'postmark',
+        ]);
+    }
+
+    /**
+     * Configure Resend mailer from environment variables.
+     */
+    protected function configureResendFromEnv(): void
+    {
+        Config::set('services.resend.key', env('RESEND_KEY'));
+        
+        Config::set('mail.mailers.resend', [
+            'transport' => 'resend',
+        ]);
+    }
+
+    /**
+     * Configure Sendmail mailer from environment variables.
+     */
+    protected function configureSendmailFromEnv(): void
+    {
+        Config::set('mail.mailers.sendmail', [
+            'transport' => 'sendmail',
+            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
+        ]);
+    }
+
+    /**
+     * Configure Log mailer from environment variables.
+     */
+    protected function configureLogFromEnv(): void
+    {
+        Config::set('mail.mailers.log', [
+            'transport' => 'log',
+            'channel' => env('MAIL_LOG_CHANNEL'),
+        ]);
     }
 }
 

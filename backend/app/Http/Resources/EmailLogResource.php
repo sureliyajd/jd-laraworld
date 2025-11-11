@@ -20,7 +20,7 @@ class EmailLogResource extends JsonResource
             'recipient_name' => $this->recipient_name,
             'subject' => $this->subject,
             'body' => $this->body,
-            'html_body' => $this->html_body,
+            'html_body' => $this->html_body, // Deprecated: kept for backward compatibility, body now supports HTML
             'status' => $this->status,
             'status_label' => ucfirst($this->status),
             'error_message' => $this->error_message,

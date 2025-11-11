@@ -25,8 +25,7 @@ class SendEmailRequest extends FormRequest
             'recipient_email' => 'required|email',
             'recipient_name' => 'nullable|string|max:255',
             'subject' => 'required|string|max:500',
-            'body' => 'required|string',
-            'html_body' => 'nullable|string',
+            'body' => 'required|string', // Supports both plain text and HTML
             'cc' => 'nullable|array',
             'cc.*' => 'email',
             'bcc' => 'nullable|array',

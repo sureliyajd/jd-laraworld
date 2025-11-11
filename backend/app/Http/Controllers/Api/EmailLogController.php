@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Auth\Access\AuthorizationException;
+use App\Jobs\SendEmailJob;
 
 class EmailLogController extends Controller
 {
@@ -136,7 +137,7 @@ class EmailLogController extends Controller
                 'recipient_name' => $request->recipient_name,
                 'subject' => $request->subject,
                 'body' => $request->body,
-                'html_body' => $request->html_body,
+                'html_body' => null, // Deprecated: body now supports HTML
                 'status' => 'pending',
                 'metadata' => [
                     'cc' => $request->cc ?? [],
@@ -145,11 +146,10 @@ class EmailLogController extends Controller
             ]);
 
             // Dispatch email job (will use configured mailer automatically)
-            \App\Jobs\SendEmailJob::dispatch(
+            SendEmailJob::dispatch(
                 $request->recipient_email,
                 $request->subject,
                 $request->body,
-                $request->html_body,
                 $request->recipient_name,
                 $request->cc ?? null,
                 $request->bcc ?? null,

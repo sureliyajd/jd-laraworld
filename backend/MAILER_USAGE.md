@@ -169,12 +169,13 @@ POST /api/email-logs
     "recipient_email": "recipient@example.com",
     "recipient_name": "John Doe",
     "subject": "Test Email",
-    "body": "Plain text body",
-    "html_body": "<p>HTML body</p>",
+    "body": "<p>Email body (supports both plain text and HTML)</p>",
     "cc": ["cc@example.com"],
     "bcc": ["bcc@example.com"]
 }
 ```
+
+Note: The `body` field now supports both plain text and HTML. If HTML tags are detected, the email will be sent as HTML. Otherwise, it will be sent as plain text.
 
 ## Supported Providers
 

@@ -1,4 +1,4 @@
-import { Shield, Zap, Bell, Mail, Database, GitBranch, Users, FileText, Coins, Key, Lock, Rocket } from "lucide-react";
+import { Shield, Zap, Bell, Mail, Database, GitBranch, Users, FileText, Coins, Key, Lock, Rocket, TestTube } from "lucide-react";
 
 const features = [
   {
@@ -23,7 +23,7 @@ const features = [
     icon: Key,
     emoji: "🔑",
     title: "OAuth2 Authentication",
-    description: "Secure OAuth2 implementation with Laravel Passport! Token-based authentication, PKCE flow, and seamless SPA integration. Enterprise-grade security made simple! 🚀",
+    description: "Secure OAuth2 implementation with Laravel Passport! Password-based authentication with Personal Access Tokens, token-based API access, and seamless SPA integration. Enterprise-grade security made simple! 🚀",
     color: "from-blue-500 to-cyan-500",
     bgColor: "from-blue-50 to-cyan-50",
     borderColor: "border-blue-200"
@@ -95,7 +95,7 @@ const features = [
     icon: GitBranch,
     emoji: "🚀",
     title: "DevOps Ready",
-    description: "CI/CD pipeline integration and deployment automation! Docker support, automated testing, and production-ready deployment setup. Built for scalability and reliability! 🐳",
+    description: "Containerized deployment with Docker! Multi-stage builds, Docker Compose orchestration, automated testing, and production-ready deployment setup. Built for scalability and reliability! 🐳",
     color: "from-violet-500 to-purple-500",
     bgColor: "from-violet-50 to-purple-50",
     borderColor: "border-violet-200"
@@ -108,6 +108,15 @@ const features = [
     color: "from-amber-500 to-yellow-500",
     bgColor: "from-amber-50 to-yellow-50",
     borderColor: "border-amber-200"
+  },
+  {
+    icon: TestTube,
+    emoji: "🧪",
+    title: "Comprehensive Unit Testing",
+    description: "71+ unit tests covering models, services, relationships, and business logic! High code coverage (88%+), comprehensive test suites, and reliable test execution. Quality assurance at its finest! 🎯",
+    color: "from-violet-500 to-purple-500",
+    bgColor: "from-violet-50 to-purple-50",
+    borderColor: "border-violet-200"
   },
 ];
 

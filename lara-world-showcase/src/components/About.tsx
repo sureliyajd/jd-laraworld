@@ -102,6 +102,10 @@ export const About = () => {
                       <span>📦</span>
                       <span>API resource transformations</span>
                     </li>
+                    <li className="flex items-start gap-2">
+                      <span>🧪</span>
+                      <span><strong>Comprehensive Unit Testing</strong> - 71+ tests with 88%+ coverage</span>
+                    </li>
                   </ul>
                 </div>
 
@@ -221,7 +225,8 @@ export const About = () => {
               <p className="text-lg text-muted-foreground leading-relaxed">
                 This project demonstrates proficiency in modern web development including API design, authentication flows, 
                 file handling, responsive UI design, <span className="font-semibold">permission management</span>, 
-                <span className="font-semibold"> credit systems</span>, and clean code architecture. 
+                <span className="font-semibold"> credit systems</span>, <span className="font-semibold">comprehensive unit testing</span>, 
+                and clean code architecture. 
                 It's built with production considerations in mind, showcasing both technical skills and attention to user experience! 
                 <span className="ml-1">🚀</span>
               </p>

@@ -88,4 +88,27 @@ class UpdateMailerRequest extends FormRequest
             'credentials.required' => 'Credentials are required for the selected provider.',
         ];
     }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Clean credentials - remove null, empty string values, and undefined keys
+        if ($this->has('credentials') && is_array($this->credentials)) {
+            $cleanedCredentials = [];
+            foreach ($this->credentials as $key => $value) {
+                // Only include non-empty values (but allow null if explicitly set)
+                if ($value !== '' && $value !== 'null') {
+                    // Convert string 'null' to actual null for encryption field
+                    if ($value === 'null') {
+                        $cleanedCredentials[$key] = null;
+                    } else {
+                        $cleanedCredentials[$key] = $value;
+                    }
+                }
+            }
+            $this->merge(['credentials' => $cleanedCredentials]);
+        }
+    }
 }

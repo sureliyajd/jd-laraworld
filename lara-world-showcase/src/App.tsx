@@ -15,6 +15,7 @@ import UserManagement from "./pages/UserManagement";
 import MailCommandCenter from "./pages/MailCommandCenter";
 import InfrastructureGallery from "./pages/InfrastructureGallery";
 import LogHorizon from "./pages/LogHorizon";
+import UnitTestingShowcase from "./pages/UnitTestingShowcase";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="mail" element={<MailCommandCenter />} />
             <Route path="devops" element={<InfrastructureGallery />} />
             <Route path="logs" element={<LogHorizon />} />
+            <Route path="tests" element={<UnitTestingShowcase />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

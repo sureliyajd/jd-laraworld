@@ -19,16 +19,23 @@ import {
   Infinity,
   TrendingUp,
   Award,
-  Gift
+  Gift,
+  TestTube
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PublicUserNotice } from "@/components/PublicUserNotice";
+import { VisitorCreditDisplay } from "@/components/VisitorCreditDisplay";
 import { CONTACT_CONFIG } from "@/config/contact";
+import { useNavigate } from "react-router-dom";
 
 const PortalDashboard = () => {
   const { user } = useAuth();
-  const { isPublicUser, isSuperAdmin, permissions } = usePermissions();
+  const { isPublicUser, isSuperAdmin, hasRole, permissions } = usePermissions();
+  const navigate = useNavigate();
+
+  // Check if user is a visitor
+  const isVisitor = hasRole('visitor');
 
   // Get credit stats if available
   const creditStats = user?.credits || {};
@@ -111,6 +118,15 @@ const PortalDashboard = () => {
       permissions: ["view roles", "assign roles", "manage permissions"],
       icon: Shield,
       color: "from-orange-500 to-red-500"
+    },
+    {
+      emoji: "🧪",
+      title: "Unit Testing",
+      description: "Comprehensive unit tests ensuring code quality and reliability! Explore our test suite covering models, services, and business logic!",
+      permissions: [],
+      icon: TestTube,
+      color: "from-violet-500 to-purple-500",
+      url: "/portal/tests"
     }
   ];
 
@@ -176,8 +192,13 @@ const PortalDashboard = () => {
         ))}
       </div>
 
-      {/* Credit System Information */}
-      {(hasCredits || hasUnlimitedCredits) && (
+      {/* Credit System Information - Show fun component for visitors, regular for others */}
+      {isVisitor && hasCredits && (
+        <VisitorCreditDisplay user={user} />
+      )}
+      
+      {/* Credit System Information for non-visitors */}
+      {!isVisitor && (hasCredits || hasUnlimitedCredits) && (
         <Card className="border-2 border-gradient-to-r from-purple-200 to-blue-200 bg-gradient-to-br from-purple-50 to-blue-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
@@ -453,7 +474,8 @@ const PortalDashboard = () => {
                   hasAccess 
                     ? 'border-green-300 bg-gradient-to-br from-green-50 to-emerald-50' 
                     : 'border-gray-200 bg-gray-50'
-                }`}
+                } ${feature.url ? 'cursor-pointer' : ''}`}
+                onClick={() => feature.url && navigate(feature.url)}
               >
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">

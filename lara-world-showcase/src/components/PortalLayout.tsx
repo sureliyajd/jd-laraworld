@@ -16,18 +16,24 @@ import {
   Users,
   Mail,
   Server,
-  Activity
+  Activity,
+  TestTube
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { NotificationBell } from "./NotificationBell";
 import { NotificationProvider } from "../contexts/NotificationContext";
+import { VisitorCreditDisplay } from "./VisitorCreditDisplay";
 
 const PortalLayoutContent = () => {
   const { user, logout } = useAuth();
-  const { can } = usePermissions();
+  const { can, hasRole } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Check if user is a visitor with credits
+  const isVisitor = hasRole('visitor');
+  const hasCredits = user?.credits && Object.keys(user.credits).length > 0;
 
   // Define navigation items with permission requirements
   const navigationItems = [
@@ -68,6 +74,12 @@ const PortalLayoutContent = () => {
       url: "/portal/logs",
       icon: Activity,
       requiredPermission: null, // Always visible (or add specific permission)
+    },
+    {
+      title: "Unit Testing",
+      url: "/portal/tests",
+      icon: TestTube,
+      requiredPermission: null, // Always visible
     },
   ].filter(item => {
     // Filter out items that user doesn't have permission to see
@@ -126,6 +138,17 @@ const PortalLayoutContent = () => {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+
+            {/* Credit Display for Visitors */}
+            {isVisitor && hasCredits && (
+              <SidebarGroup className="mt-4">
+                <SidebarGroupContent>
+                  <div className="p-2">
+                    <VisitorCreditDisplay user={user} compact={true} />
+                  </div>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
           </SidebarContent>
 
           <SidebarFooter className="border-t p-4">

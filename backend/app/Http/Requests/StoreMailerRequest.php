@@ -77,4 +77,29 @@ class StoreMailerRequest extends FormRequest
             'credentials.required' => 'Credentials are required for the selected provider.',
         ];
     }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Clean credentials - remove empty string values, but keep null for optional fields like encryption
+        if ($this->has('credentials') && is_array($this->credentials)) {
+            $cleanedCredentials = [];
+            foreach ($this->credentials as $key => $value) {
+                // Convert string 'null' to actual null for fields that can be null (like encryption)
+                if ($value === 'null' || $value === null) {
+                    // Only set null if the field is optional (encryption can be null)
+                    if ($key === 'encryption') {
+                        $cleanedCredentials[$key] = null;
+                    }
+                    // For other fields, skip empty/null values
+                } elseif ($value !== '') {
+                    // Include non-empty values
+                    $cleanedCredentials[$key] = $value;
+                }
+            }
+            $this->merge(['credentials' => $cleanedCredentials]);
+        }
+    }
 }

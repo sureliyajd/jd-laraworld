@@ -274,11 +274,20 @@ const MailerManagement: React.FC = () => {
       setRawError(null);
 
       if (editingMailer) {
-        await mailerService.updateMailer(editingMailer.id, formData);
-        toast({
-          title: 'Success',
-          description: 'Mailer updated successfully',
-        });
+        const result = await mailerService.updateMailer(editingMailer.id, formData);
+        if (!result.test_status && result.test_error) {
+          setRawError(result.test_error);
+          toast({
+            title: 'Mailer Updated',
+            description: 'Mailer updated but test email failed. Please check the error and test again.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: 'Mailer updated successfully',
+          });
+        }
       } else {
         const result = await mailerService.createMailer(formData);
         if (!result.test_status) {
@@ -301,11 +310,21 @@ const MailerManagement: React.FC = () => {
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to save mailer';
       setRawError(errorMessage);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      
+      // Check if it's a validation error with multiple fields
+      if (errorMessage.includes(':')) {
+        toast({
+          title: 'Validation Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -358,6 +377,9 @@ const MailerManagement: React.FC = () => {
       }
 
       if (fieldInfo.options && fieldInfo.options.length > 0) {
+        // Convert null/undefined to 'null' string for Select component
+        const selectValue = value === null || value === undefined ? 'null' : String(value);
+        
         return (
           <div key={fieldName} className="space-y-2">
             <Label htmlFor={fieldName}>
@@ -365,7 +387,7 @@ const MailerManagement: React.FC = () => {
               {fieldInfo.required && <span className="text-red-500">*</span>}
             </Label>
             <Select
-              value={value || ''}
+              value={selectValue}
               onValueChange={(val) => updateCredential(fieldName, val === 'null' ? null : val)}
             >
               <SelectTrigger className={error ? 'border-red-500' : ''}>
@@ -373,8 +395,8 @@ const MailerManagement: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 {fieldInfo.options.map((option) => (
-                  <SelectItem key={option || 'null'} value={option || 'null'}>
-                    {option || 'None'}
+                  <SelectItem key={option === null ? 'null' : String(option)} value={option === null ? 'null' : String(option)}>
+                    {option === null ? 'None' : String(option)}
                   </SelectItem>
                 ))}
               </SelectContent>

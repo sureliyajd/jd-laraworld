@@ -103,35 +103,105 @@ class MailerService {
   }
 
   async createMailer(mailerData: MailerFormData): Promise<Mailer> {
+    // Clean credentials - remove undefined and empty string values, but keep null for encryption field
+    const cleanedCredentials: MailerCredentials = {};
+    Object.entries(mailerData.credentials).forEach(([key, value]) => {
+      // Keep null for encryption field (it's a valid value)
+      if (key === 'encryption' && value === null) {
+        cleanedCredentials[key as keyof MailerCredentials] = null;
+      } else if (value !== undefined && value !== null && value !== '') {
+        cleanedCredentials[key as keyof MailerCredentials] = value;
+      }
+    });
+
+    const cleanedData = {
+      ...mailerData,
+      credentials: cleanedCredentials,
+    };
+
     const response = await fetch(`${this.API_BASE}/mailers`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(mailerData),
+      body: JSON.stringify(cleanedData),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || errorData.error || 'Failed to create mailer');
+    const responseData = await response.json();
+
+    // Even if status is 422 (test failed), return the created mailer data
+    if (response.status === 422 && responseData.data) {
+      // Return the mailer but include error info
+      return {
+        ...responseData.data,
+        test_status: responseData.data.test_status || false,
+        test_error: responseData.raw_error || responseData.error || responseData.data.test_error,
+      };
     }
 
-    const data = await response.json();
-    return data.data;
+    if (!response.ok) {
+      // Handle validation errors
+      if (responseData.errors) {
+        const errorMessages = Object.entries(responseData.errors)
+          .map(([field, messages]) => {
+            const fieldMessages = Array.isArray(messages) ? messages : [messages];
+            return `${field}: ${fieldMessages.join(', ')}`;
+          })
+          .join('\n');
+        throw new Error(errorMessages || responseData.message || 'Validation failed');
+      }
+      throw new Error(responseData.message || responseData.error || 'Failed to create mailer');
+    }
+
+    return responseData.data;
   }
 
   async updateMailer(id: number, mailerData: Partial<MailerFormData>): Promise<Mailer> {
+    // Clean credentials if provided
+    let cleanedData: any = { ...mailerData };
+    if (mailerData.credentials) {
+      const cleanedCredentials: MailerCredentials = {};
+      Object.entries(mailerData.credentials).forEach(([key, value]) => {
+        // Keep null for encryption field (it's a valid value)
+        if (key === 'encryption' && value === null) {
+          cleanedCredentials[key as keyof MailerCredentials] = null;
+        } else if (value !== undefined && value !== null && value !== '') {
+          cleanedCredentials[key as keyof MailerCredentials] = value;
+        }
+      });
+      cleanedData.credentials = cleanedCredentials;
+    }
+
     const response = await fetch(`${this.API_BASE}/mailers/${id}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(mailerData),
+      body: JSON.stringify(cleanedData),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || errorData.error || 'Failed to update mailer');
+    const responseData = await response.json();
+
+    // Even if status is 422 (test failed), return the updated mailer data
+    if (response.status === 422 && responseData.data) {
+      return {
+        ...responseData.data,
+        test_status: responseData.data.test_status || false,
+        test_error: responseData.raw_error || responseData.error || responseData.data.test_error,
+      };
     }
 
-    const data = await response.json();
-    return data.data;
+    if (!response.ok) {
+      // Handle validation errors
+      if (responseData.errors) {
+        const errorMessages = Object.entries(responseData.errors)
+          .map(([field, messages]) => {
+            const fieldMessages = Array.isArray(messages) ? messages : [messages];
+            return `${field}: ${fieldMessages.join(', ')}`;
+          })
+          .join('\n');
+        throw new Error(errorMessages || responseData.message || 'Validation failed');
+      }
+      throw new Error(responseData.message || responseData.error || 'Failed to update mailer');
+    }
+
+    return responseData.data;
   }
 
   async deleteMailer(id: number): Promise<void> {

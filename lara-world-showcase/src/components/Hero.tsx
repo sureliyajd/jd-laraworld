@@ -54,6 +54,10 @@ export const Hero = () => {
               <span>⚡</span>
               <span className="text-sm font-semibold text-orange-800">Real-Time Updates</span>
             </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 border border-violet-300">
+              <span>🧪</span>
+              <span className="text-sm font-semibold text-violet-800">Unit Testing</span>
+            </div>
           </div>
 
           {/* CTA Button */}
@@ -89,11 +93,11 @@ export const Hero = () => {
             </div>
             {[
               { tech: "Laravel 12", emoji: "🔄" },
-              { tech: "ReactJS", emoji: "⚛️" },
-              { tech: "TypeScript", emoji: "📘" },
-              { tech: "Vite", emoji: "⚡" },
-              { tech: "Tailwind CSS v4", emoji: "🎨" },
-              { tech: "MySQL", emoji: "💾" },
+              { tech: "React 18", emoji: "⚛️" },
+              { tech: "TypeScript 5.8", emoji: "📘" },
+              { tech: "Vite 5", emoji: "⚡" },
+              { tech: "Tailwind CSS 3.4", emoji: "🎨" },
+              { tech: "SQLite/MySQL", emoji: "💾" },
               { tech: "Eloquent ORM", emoji: "🗄️" },
               { tech: "RESTful APIs", emoji: "🌐" },
               { tech: "Laravel Passport", emoji: "🔑" },

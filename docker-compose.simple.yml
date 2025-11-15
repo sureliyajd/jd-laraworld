@@ -1,0 +1,63 @@
+# Simple Docker Compose for Laravel Backend with Local MySQL
+# This is a minimal setup to get you started
+
+version: '3.8'
+
+services:
+  # PHP-FPM Service (Laravel Application)
+  php:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laravel-php
+    volumes:
+      # Mount your code so changes reflect immediately
+      - ./backend:/var/www/html
+      # Keep vendor separate (don't override container's vendor)
+      - backend_vendor:/var/www/html/vendor
+    environment:
+      # Database Configuration - CONNECTS TO YOUR LOCAL MYSQL
+      DB_CONNECTION: mysql
+      DB_HOST: host.docker.internal  # ← This connects to your Mac's MySQL
+      DB_PORT: 3306
+      DB_DATABASE: jd-laraworld  # ← Change this to your database name
+      DB_USERNAME: root     # ← Change this to your MySQL username
+      DB_PASSWORD:          # ← Change this to your MySQL password
+      
+      # Laravel Configuration
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      
+      # Cache & Queue (optional - can use file driver for simplicity)
+      CACHE_DRIVER: file
+      QUEUE_CONNECTION: sync
+    networks:
+      - app
+    # Keep container running
+    tty: true
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    ports:
+      - "8000:80"  # Access your app at http://localhost:8000
+    volumes:
+      - ./backend:/var/www/html
+      - ./ops/nginx-backend.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - app
+
+# Networks
+networks:
+  app:
+    driver: bridge
+
+# Volumes (persistent storage)
+volumes:
+  backend_vendor:
+    # This keeps your vendor folder even if container is removed
+

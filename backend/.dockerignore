@@ -9,7 +9,10 @@ storage/framework
 *.sqlite-journal
 docker-compose*.yml
 Dockerfile*
-composer.lock
+# Keep composer.lock for consistent installs (don't exclude it)
+# Exclude cache files - they'll be regenerated
+bootstrap/cache/packages.php
+bootstrap/cache/services.php
 .DS_Store
 
 

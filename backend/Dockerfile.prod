@@ -48,7 +48,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php || true
 
 # Copy Nginx configuration for production
-COPY ops/nginx-backend-prod.conf /etc/nginx/sites-available/default
+COPY nginx-prod.conf /etc/nginx/sites-available/default
 
 # Set proper permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html \

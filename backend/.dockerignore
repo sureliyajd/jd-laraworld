@@ -1,0 +1,18 @@
+node_modules
+vendor
+storage/logs
+storage/framework
+.git
+.gitignore
+.env
+.env.*
+*.sqlite-journal
+docker-compose*.yml
+Dockerfile*
+# Keep composer.lock for consistent installs (don't exclude it)
+# Exclude cache files - they'll be regenerated
+bootstrap/cache/packages.php
+bootstrap/cache/services.php
+.DS_Store
+
+

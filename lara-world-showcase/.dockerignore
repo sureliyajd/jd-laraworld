@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+.DS_Store
+docker-compose*.yml
+Dockerfile*
+package-lock.json
+
+

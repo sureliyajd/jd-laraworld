@@ -162,3 +162,4 @@ Your test setup is **already safe** and properly configured. You can run tests w
 
 **You can run `php artisan test` anytime without worrying about your database!**
 
+

@@ -50,25 +50,30 @@ RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php || true
 # Copy Nginx configuration for production
 COPY nginx-prod.conf /etc/nginx/sites-available/default
 
-# Set proper permissions for Laravel
-# Set proper permissions for Laravel
+# Set proper permissions for Laravel (build-time)
 RUN mkdir -p /var/www/html/storage/framework/cache/data \
     /var/www/html/storage/framework/sessions \
     /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs \
     /var/www/html/bootstrap/cache \
  && chown -R www-data:www-data /var/www/html \
- && chmod -R 755 /var/www/html/storage \
- && chmod -R 755 /var/www/html/bootstrap/cache
+ && chmod -R 775 /var/www/html/storage \
+ && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
 # Generate application key if not set\n\
-if [ -z "$APP_KEY" ]; then\n\
-    echo "APP_KEY not set, generating new key..."\n\
-    php artisan key:generate --force || true\n\
-fi\n\
+if [ -z "$APP_KEY" ]; then
+    echo "APP_KEY not set, generating new key..."
+    php artisan key:generate --force || true
+fi
+
+if [ ! -f storage/oauth-private.key ] || [ ! -f storage/oauth-public.key ]; then
+    echo "OAuth keys not found, generating new keys..."
+    php artisan passport:keys --force || true
+fi
 \n\
 # Cache configuration for performance (skip if database not ready)\n\
 php artisan config:cache || echo "Config cache failed, continuing..."\n\

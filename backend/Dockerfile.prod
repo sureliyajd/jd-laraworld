@@ -75,8 +75,12 @@ mkdir -p storage/framework/cache/data \
          bootstrap/cache
 
 # Fix permissions at runtime (important when volumes are mounted)
-chown -R www-data:www-data storage bootstrap/cache
-chmod -R ug+rwx storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 777 storage bootstrap/cache || true
+
+# Ensure log file exists and is writable
+touch storage/logs/laravel.log
+chmod 666 storage/logs/laravel.log || true
 
 # Generate application key if not set
 if [ -z "$APP_KEY" ]; then

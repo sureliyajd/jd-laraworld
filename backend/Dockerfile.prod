@@ -54,34 +54,13 @@ RUN mkdir -p /var/www/html/storage/framework/cache/data \
     /var/www/html/storage/framework/sessions \
     /var/www/html/storage/framework/views \
     /var/www/html/bootstrap/cache \
- && chown -R www-data:www-data /var/www/html \
- && chmod -R 777 /var/www/html/storage \
- && chmod -R 777 /var/www/html/bootstrap/cache
+&& chown -R www-data:www-data /var/www/html \
+&& chmod -R 777 /var/www/html/storage \
+&& chmod -R 777 /var/www/html/bootstrap/cache
 
-# Create startup script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-# NOTE: APP_KEY MUST be provided via environment variable in Render.\n\
-if [ -z "$APP_KEY" ]; then\n\
-    echo "ERROR: APP_KEY is not set. Please configure APP_KEY in Render environment variables."\n\
-fi\n\
-\n\
-# Cache configuration for performance (skip if database not ready)\n\
-php artisan config:cache || echo "Config cache failed, continuing..."\n\
-php artisan route:cache || echo "Route cache failed, continuing..."\n\
-php artisan view:cache || echo "View cache failed, continuing..."\n\
-\n\
-# Ensure storage and cache directories (and any log files) are writable by PHP-FPM user\n\
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true\n\
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true\n\
-\n\
-# Start PHP-FPM in background\n\
-php-fpm -D\n\
-\n\
-# Start Nginx in foreground\n\
-exec nginx -g "daemon off;"\n\
-' > /start.sh && chmod +x /start.sh
+# Copy and set up startup script
+COPY docker-start.sh /start.sh
+RUN chmod +x /start.sh
 
 # Expose port 80 (Nginx)
 EXPOSE 80

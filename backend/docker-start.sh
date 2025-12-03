@@ -9,7 +9,7 @@ fi
 echo "=== Checking for Narwhal keys in /etc/secrets ==="
 
 # The folder in your Laravel app where you expect your keys
-LARAVEL_KEY_DIR="/var/www/html/storage/keys"
+LARAVEL_KEY_DIR="/var/www/html/storage"
 
 mkdir -p $LARAVEL_KEY_DIR
 

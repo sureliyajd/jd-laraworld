@@ -25,7 +25,9 @@ export const AUTH_CONFIG = {
   SCOPES: import.meta.env.VITE_OAUTH_SCOPES || "",
 
   // Redirect URI (must match what's configured in Laravel Passport)
-  REDIRECT_URI: `${window.location.origin}/auth/callback`,
+  // Include Vite BASE_URL and HashRouter fragment so it works under /jd-laraworld/
+  // e.g. https://sureliyajd.github.io/jd-laraworld/#/auth/callback
+  REDIRECT_URI: `${window.location.origin}${import.meta.env.BASE_URL || "/"}#/auth/callback`,
 
   // Token storage keys
   STORAGE_KEYS: {

@@ -222,8 +222,9 @@ class AuthService {
 
   public logout(): void {
     this.clearTokensFromStorage();
-    // Redirect to login page
-    window.location.href = '/portal/login';
+    // Redirect to login page (HashRouter + correct base URL)
+    const base = import.meta.env.BASE_URL || "/";
+    window.location.href = `${base}#/portal/login`;
   }
 
   public async makeAuthenticatedRequest(url: string, options: RequestInit = {}): Promise<Response> {

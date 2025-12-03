@@ -36,8 +36,11 @@ export const useAuth = () => {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       await authService.loginWithPassword(email, password);
       await loadUser();
-      // Redirect to portal after successful login
-      window.location.href = '/portal';
+      // Redirect to portal after successful login.
+      // Use Vite's BASE_URL and HashRouter-compatible URL so this works
+      // both in dev ("/") and on GitHub Pages ("/jd-laraworld/").
+      const base = import.meta.env.BASE_URL || "/";
+      window.location.href = `${base}#/portal`;
     } catch (error) {
       setAuthState(prev => ({
         ...prev,

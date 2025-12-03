@@ -50,8 +50,6 @@ RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php || true
 # Copy Nginx configuration for production
 COPY nginx-prod.conf /etc/nginx/sites-available/default
 
-# Set proper permissions for Laravel
-# Set proper permissions for Laravel
 RUN mkdir -p /var/www/html/storage/framework/cache/data \
     /var/www/html/storage/framework/sessions \
     /var/www/html/storage/framework/views \
@@ -64,16 +62,19 @@ RUN mkdir -p /var/www/html/storage/framework/cache/data \
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
-# Generate application key if not set\n\
+# NOTE: APP_KEY MUST be provided via environment variable in Render.\n\
 if [ -z "$APP_KEY" ]; then\n\
-    echo "APP_KEY not set, generating new key..."\n\
-    php artisan key:generate --force || true\n\
+    echo "ERROR: APP_KEY is not set. Please configure APP_KEY in Render environment variables."\n\
 fi\n\
 \n\
 # Cache configuration for performance (skip if database not ready)\n\
 php artisan config:cache || echo "Config cache failed, continuing..."\n\
 php artisan route:cache || echo "Route cache failed, continuing..."\n\
 php artisan view:cache || echo "View cache failed, continuing..."\n\
+\n\
+# Ensure storage and cache directories (and any log files) are writable by PHP-FPM user\n\
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true\n\
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true\n\
 \n\
 # Start PHP-FPM in background\n\
 php-fpm -D\n\

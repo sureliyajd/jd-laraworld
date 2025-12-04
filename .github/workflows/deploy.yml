@@ -1,0 +1,132 @@
+name: Deploy Laravel to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    env:
+      # **CHANGE ME**: Path to your app directory on the server
+      APP_DIR: /var/www/myapp
+      # **CHANGE ME**: Remote deploy script path on the server
+      DEPLOY_SCRIPT: /opt/myapp/deploy.sh
+      # **CHANGE ME** (optional): Log file to tail (for instructions only)
+      LOG_FILE: /var/www/myapp/storage/logs/laravel.log
+      # Temporary upload directory on the server (per-run)
+      DEPLOY_TEMP_DIR: /tmp/deploy_${{ github.run_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install rsync and SSH client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync openssh-client
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_ci
+          chmod 600 ~/.ssh/id_rsa_ci
+          # Optional: SSH config to always use this key for the target host
+          cat >> ~/.ssh/config <<EOF
+          Host deploy-target
+            HostName ${{ secrets.SERVER_IP }}
+            User ${{ secrets.SSH_USER }}
+            Port ${{ secrets.SERVER_SSH_PORT }}
+            IdentityFile ~/.ssh/id_rsa_ci
+            # **SECURITY NOTE**: Disabling StrictHostKeyChecking avoids host key prompts in CI
+            # but makes you vulnerable to man-in-the-middle attacks. Use only if you trust your network.
+            StrictHostKeyChecking no
+          EOF
+        shell: bash
+
+      - name: Upload code to EC2 with rsync (with retries)
+        run: |
+          set -e
+
+          RSYNC_CMD="rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='vendor' \
+            --exclude='.env' \
+            --exclude='storage' \
+            --exclude='tests' \
+            --exclude='*.log' \
+            --exclude='*.cache' \
+            -e 'ssh -F ~/.ssh/config' \
+            ./ deploy-target:${DEPLOY_TEMP_DIR}"
+
+          echo "Running rsync to upload code to ${DEPLOY_TEMP_DIR} on EC2..."
+
+          # Retry rsync up to 3 times in case of transient network issues
+          n=0
+          until [ $n -ge 3 ]; do
+            eval "$RSYNC_CMD" && break
+            n=$((n+1))
+            echo "rsync failed (attempt $n/3). Retrying in 5 seconds..."
+            sleep 5
+          done
+
+          if [ $n -ge 3 ]; then
+            echo "rsync failed after 3 attempts."
+            exit 1
+          fi
+        shell: bash
+
+      - name: Remote deploy (move files, set ownership, run deploy script) with retries
+        run: |
+          set -e
+
+          REMOTE_CMD="
+            set -e;
+            echo 'Creating app directory ${APP_DIR} if not exists...';
+            sudo mkdir -p '${APP_DIR}';
+            echo 'Syncing from ${DEPLOY_TEMP_DIR} to ${APP_DIR}...';
+            sudo rsync -a --delete '${DEPLOY_TEMP_DIR}/' '${APP_DIR}/';
+            echo 'Setting ownership to www-data:www-data...';
+            sudo chown -R www-data:www-data '${APP_DIR}';
+            echo 'Running deploy script ${DEPLOY_SCRIPT}...';
+            # **CHANGE ME**: Ensure deploy script uses the correct PHP version (e.g., php8.2)
+            sudo '${DEPLOY_SCRIPT}'
+          "
+
+          echo "Running remote deploy on EC2..."
+
+          n=0
+          until [ $n -ge 3 ]; do
+            ssh deploy-target "$REMOTE_CMD" && break
+            n=$((n+1))
+            echo "Remote deploy failed (attempt $n/3). Retrying in 10 seconds..."
+            sleep 10
+          done
+
+          if [ $n -ge 3 ]; then
+            echo "Remote deploy failed after 3 attempts."
+            exit 1
+          fi
+        shell: bash
+
+      - name: Post-deploy info
+        if: success()
+        run: |
+          echo "✅ Deployment completed successfully."
+          echo
+          echo "To tail Laravel logs from your local machine, run:"
+          echo "ssh -p ${{ secrets.SERVER_SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \"tail -f ${LOG_FILE}\""
+        shell: bash
+
+      - name: Post-deploy failure info
+        if: failure()
+        run: |
+          echo "❌ Deployment failed. Check the GitHub Actions logs and server logs."
+          echo
+          echo "You can tail Laravel logs from your local machine with:"
+          echo "ssh -p ${{ secrets.SERVER_SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \"tail -f ${LOG_FILE}\""
+        shell: bash

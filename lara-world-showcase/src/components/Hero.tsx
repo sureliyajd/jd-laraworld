@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Rocket, Sparkles, Star, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { CONTACT_CONFIG } from "@/config/contact";
 
 export const Hero = () => {
   return (
@@ -81,7 +82,12 @@ export const Hero = () => {
           <div className="max-w-2xl mx-auto mt-8 p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
             <p className="text-sm text-gray-800 leading-relaxed">
               <span className="font-bold">🎭 Demo Credentials Available!</span> You can explore the portal with public demo credentials (view-only mode), 
-              or <span className="font-semibold text-purple-700">request visitor access</span> to experience the full power with credits! 
+              or <a 
+                href={`mailto:${CONTACT_CONFIG.email}?subject=${encodeURIComponent('Visitor Credentials Request - LaraWorld Portal')}&body=${encodeURIComponent(`Hi ${CONTACT_CONFIG.name},\n\nI'm interested in exploring the full features of your Laravel showcase portal. Could you please provide me with visitor credentials?\n\nThank you!`)}`}
+                className="font-semibold text-purple-700 hover:text-purple-900 underline cursor-pointer transition-colors"
+              >
+                request visitor access
+              </a> to experience the full power with credits! 
               <span className="ml-1">✨</span>
             </p>
           </div>

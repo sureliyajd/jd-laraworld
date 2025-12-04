@@ -121,7 +121,6 @@ This showcase is designed to demonstrate expertise in:
 ### DevOps & Tools
 - **Docker** - Containerization
 - **GitHub Actions** - CI/CD
-- **Render.com** - Deployment Platform
 
 ---
 
@@ -341,8 +340,13 @@ See detailed configuration in:
 jd-laraworld/
 ├── backend/                 # Laravel 12 Backend
 │   ├── app/
-│   │   ├── Http/Controllers/Api/
+│   │   ├── Http/
+│   │   │   ├── Controllers/Api/
+│   │   │   ├── Requests/
+│   │   │   ├── Resources/
+│   │   │   └── Middleware/
 │   │   ├── Models/
+│   │   ├── Policies/
 │   │   ├── Jobs/
 │   │   ├── Events/
 │   │   ├── Notifications/
@@ -361,11 +365,11 @@ jd-laraworld/
 │   │   ├── hooks/
 │   │   └── contexts/
 │   └── public/
-└── docs/                    # Documentation
-    ├── ADVANCED_LARAVEL_FEATURES.md
-    ├── FRONTEND_MAILER_IMPLEMENTATION.md
-    ├── HORIZON_SETUP_COMPLETE.md
-    └── ...
+├── ADVANCED_LARAVEL_FEATURES.md
+├── FRONTEND_MAILER_IMPLEMENTATION.md
+├── HORIZON_SETUP_COMPLETE.md
+├── PUSHER_SETUP_GUIDE.md
+└── README.md
 ```
 
 ---
@@ -431,16 +435,6 @@ php artisan test --coverage
 
 ---
 
-## 🚢 Deployment
-
-The project is configured for deployment on **Render.com** with:
-- Docker-based deployment
-- Production-ready Dockerfile
-- Environment configuration
-- Health check endpoints
-
-See [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) for detailed deployment instructions.
-
 ---
 
 ## 🔒 Security Features
@@ -468,8 +462,8 @@ This is a portfolio project showcasing development skills. However, suggestions 
 
 - 🌐 **Portfolio**: [https://sureliyajd.github.io/jd-laraworld](https://sureliyajd.github.io/jd-laraworld)
 - 📧 **Email**: Contact via portfolio
-- 💼 **LinkedIn**: [linkedin.com/in/jaydeepsureliya](https://linkedin.com/in/jaydeepsureliya)
-- 🐙 **GitHub**: [github.com/jaydeepsureliya](https://github.com/jaydeepsureliya)
+- 💼 **LinkedIn**: [linkedin.com/in/jd-sureliya](https://www.linkedin.com/in/jd-sureliya/)
+- 🐙 **GitHub**: [github.com/sureliyajd](https://github.com/sureliyajd)
 
 ---
 

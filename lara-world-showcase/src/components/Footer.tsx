@@ -25,7 +25,7 @@ export const Footer = () => {
           {/* Social links */}
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/jaydeepsureliya"
+              href="https://github.com/sureliyajd"
               target="_blank"
               rel="noopener noreferrer"
               className="w-12 h-12 rounded-full bg-secondary hover:bg-purple-600 hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
@@ -35,7 +35,7 @@ export const Footer = () => {
               <Github className="w-5 h-5" />
             </a>
             <a
-              href="https://linkedin.com/in/jaydeepsureliya"
+              href="https://www.linkedin.com/in/jd-sureliya"
               target="_blank"
               rel="noopener noreferrer"
               className="w-12 h-12 rounded-full bg-secondary hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"

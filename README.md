@@ -376,9 +376,6 @@ jd-laraworld/
 - **[Frontend Mailer Implementation](./FRONTEND_MAILER_IMPLEMENTATION.md)** - Email management system
 - **[Horizon Setup Guide](./HORIZON_SETUP_COMPLETE.md)** - Queue monitoring setup
 - **[Pusher Setup Guide](./PUSHER_SETUP_GUIDE.md)** - Real-time features configuration
-- **[Deployment Guide](./QUICK_DEPLOY.md)** - Quick deployment to Render.com
-- **[Deployment Summary](./DEPLOYMENT_SUMMARY.md)** - Complete deployment information
-- **[Modules Implementation](./MODULES_IMPLEMENTATION.md)** - Module details
 
 ---
 

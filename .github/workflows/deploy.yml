@@ -32,24 +32,18 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_ci
           chmod 600 ~/.ssh/id_rsa_ci
-          # Optional: SSH config to always use this key for the target host
-          cat >> ~/.ssh/config <<EOF
-          Host deploy-target
-            HostName ${{ secrets.SERVER_IP }}
-            User ${{ secrets.SSH_USER }}
-            Port ${{ secrets.SERVER_SSH_PORT }}
-            IdentityFile ~/.ssh/id_rsa_ci
-            # **SECURITY NOTE**: Disabling StrictHostKeyChecking avoids host key prompts in CI
-            # but makes you vulnerable to man-in-the-middle attacks. Use only if you trust your network.
-            StrictHostKeyChecking no
-          EOF
+          # **SECURITY NOTE**: Disabling StrictHostKeyChecking avoids host key prompts in CI
+          # but makes you vulnerable to man-in-the-middle attacks. Use only if you trust your network.
         shell: bash
 
       - name: Upload code to EC2 with rsync (with retries)
         run: |
           set -e
+
+          SSH_OPTS="-i ~/.ssh/id_rsa_ci -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_SSH_PORT }}"
 
           RSYNC_CMD="rsync -az --delete \
             --exclude='.git' \
@@ -60,8 +54,8 @@ jobs:
             --exclude='tests' \
             --exclude='*.log' \
             --exclude='*.cache' \
-            -e 'ssh -F ~/.ssh/config' \
-            ./ deploy-target:${DEPLOY_TEMP_DIR}"
+            -e \"ssh $SSH_OPTS\" \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:${DEPLOY_TEMP_DIR}"
 
           echo "Running rsync to upload code to ${DEPLOY_TEMP_DIR} on EC2..."
 
@@ -84,6 +78,8 @@ jobs:
         run: |
           set -e
 
+          SSH_OPTS="-i ~/.ssh/id_rsa_ci -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_SSH_PORT }}"
+
           REMOTE_CMD="
             set -e;
             echo 'Creating app directory ${APP_DIR} if not exists...';
@@ -101,7 +97,7 @@ jobs:
 
           n=0
           until [ $n -ge 3 ]; do
-            ssh deploy-target "$REMOTE_CMD" && break
+            ssh $SSH_OPTS ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "$REMOTE_CMD" && break
             n=$((n+1))
             echo "Remote deploy failed (attempt $n/3). Retrying in 10 seconds..."
             sleep 10

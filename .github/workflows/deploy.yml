@@ -88,9 +88,17 @@ jobs:
             sudo rsync -a --delete '${DEPLOY_TEMP_DIR}/' '${APP_DIR}/';
             echo 'Setting ownership to www-data:www-data...';
             sudo chown -R www-data:www-data '${APP_DIR}';
+            echo 'Verifying deploy script exists at ${DEPLOY_SCRIPT}...';
+            if [ ! -f '${DEPLOY_SCRIPT}' ]; then
+              echo 'ERROR: Deploy script not found at ${DEPLOY_SCRIPT}';
+              exit 1;
+            fi;
+            echo 'Making deploy script executable...';
+            sudo chmod +x '${DEPLOY_SCRIPT}';
             echo 'Running deploy script ${DEPLOY_SCRIPT}...';
             # **CHANGE ME**: Ensure deploy script uses the correct PHP version (e.g., php8.2)
-            sudo '${DEPLOY_SCRIPT}'
+            # Using bash to execute ensures it runs even if shebang is missing
+            sudo bash '${DEPLOY_SCRIPT}'
           "
 
           echo "Running remote deploy on EC2..."

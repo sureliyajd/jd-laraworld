@@ -185,11 +185,25 @@ class DevOpsController extends Controller
      */
     private function getGitHubActionsInfo(): array
     {
-        // Check in parent directory for .github/workflows (since backend is a subdirectory)
-        $workflowsPath = base_path('../.github/workflows');
+        // Try multiple paths to find .github/workflows directory
+        // Works for both local development (backend subdirectory) and server deployment (root level)
+        $possiblePaths = [
+            base_path('.github/workflows'),      // Server deployment: .github at root level
+            base_path('../.github/workflows'),   // Local dev: backend is subdirectory
+            base_path('../../.github/workflows'), // Fallback: if nested deeper
+        ];
+        
+        $workflowsPath = null;
+        foreach ($possiblePaths as $path) {
+            if (File::isDirectory($path)) {
+                $workflowsPath = $path;
+                break;
+            }
+        }
+        
         $workflows = [];
         
-        if (File::isDirectory($workflowsPath)) {
+        if ($workflowsPath && File::isDirectory($workflowsPath)) {
             $files = File::allFiles($workflowsPath);
             foreach ($files as $file) {
                 if (in_array($file->getExtension(), ['yml', 'yaml'])) {
@@ -203,7 +217,7 @@ class DevOpsController extends Controller
         }
 
         return [
-            'enabled' => File::isDirectory($workflowsPath) && count($workflows) > 0,
+            'enabled' => $workflowsPath !== null && count($workflows) > 0,
             'workflows' => $workflows,
             'description' => 'Automated CI/CD pipeline using GitHub Actions with rsync-based deployment to AWS EC2. Triggers on push to main branch for seamless continuous deployment.',
             'features' => [
@@ -254,23 +268,105 @@ class DevOpsController extends Controller
     private function getInfrastructureInfo(): array
     {
         return [
-            'cloud_provider' => env('CLOUD_PROVIDER', 'Not configured'),
-            'environment' => env('APP_ENV', 'local'),
+            'cloud_provider' => 'AWS (Amazon Web Services)',
+            'environment' => env('APP_ENV', 'production'),
+            'description' => 'Cost-optimized infrastructure setup for demo/portfolio project. Backend deployed on AWS EC2, database on RDS MySQL, frontend on GitHub Pages, and real-time features via Pusher.',
+            
+            // Backend Infrastructure
+            'backend' => [
+                'hosting' => 'AWS EC2',
+                'type' => 'EC2 Instance',
+                'description' => 'Laravel backend API running on AWS EC2 instance with Docker containerization',
+                'deployment_method' => 'Docker + GitHub Actions CI/CD',
+                'web_server' => 'Nginx + PHP-FPM',
+            ],
+            
+            // Frontend Infrastructure
+            'frontend' => [
+                'hosting' => 'GitHub Pages',
+                'description' => 'React-based frontend application deployed on GitHub Pages for cost-effective static hosting',
+                'deployment_method' => 'GitHub Actions (automatic on push)',
+                'framework' => 'React + TypeScript',
+            ],
+            
+            // Database Infrastructure
+            'database' => [
+                'service' => 'AWS RDS',
+                'engine' => 'MySQL',
+                'type' => 'Managed Database Service',
+                'description' => 'Fully managed MySQL database on AWS RDS for reliable data persistence',
+                'connection' => config('database.default'),
+            ],
+            
+            // Broadcasting Service
+            'broadcasting' => [
+                'service' => 'Pusher',
+                'type' => 'Real-time WebSocket Service',
+                'description' => 'Pusher service for real-time broadcasting, notifications, and live updates',
+                'driver' => config('broadcasting.default', 'pusher'),
+            ],
+            
+            // Server Specifications
             'server_specs' => [
                 'php_version' => PHP_VERSION,
                 'laravel_version' => app()->version(),
                 'database' => config('database.default'),
+                'operating_system' => 'Linux (Ubuntu/Debian)',
             ],
+            
+            // Services Configuration
             'services' => [
                 'database' => config('database.default'),
                 'cache' => config('cache.default'),
                 'queue' => config('queue.default'),
                 'broadcasting' => config('broadcasting.default'),
+                'session' => config('session.driver'),
             ],
-            'description' => 'Infrastructure configuration and deployment information',
+            
+            // CI/CD Configuration
+            'cicd' => [
+                'platform' => 'GitHub Actions',
+                'trigger' => 'Push to main branch',
+                'deployment_target' => 'AWS EC2',
+                'method' => 'Rsync over SSH',
+            ],
+            
+            // Cost Optimization
+            'cost_optimization' => [
+                'strategy' => 'Minimal cost demo/portfolio setup',
+                'features' => [
+                    'Free GitHub Pages hosting for frontend',
+                    'Cost-effective EC2 instance sizing',
+                    'Managed RDS for reliability without overhead',
+                    'Pay-as-you-go Pusher service',
+                    'Automated deployments to reduce manual work',
+                ],
+            ],
+            
+            // Security Features
+            'security' => [
+                'ssl_tls' => 'Enabled (HTTPS)',
+                'authentication' => 'Laravel Passport OAuth2',
+                'api_protection' => 'Bearer token authentication',
+                'database' => 'Encrypted connections to RDS',
+            ],
+            
+            // Monitoring
             'monitoring' => [
                 'enabled' => false,
                 'tools' => [],
+                'note' => 'Basic monitoring via Laravel logs. Can be extended with AWS CloudWatch or third-party services.',
+            ],
+            
+            // Scalability Notes
+            'scalability' => [
+                'current_setup' => 'Single EC2 instance suitable for demo/portfolio',
+                'scaling_options' => [
+                    'Horizontal scaling: Add more EC2 instances behind load balancer',
+                    'Database: RDS supports read replicas for read scaling',
+                    'Caching: Redis/ElastiCache for improved performance',
+                    'CDN: CloudFront for static asset delivery',
+                ],
             ],
         ];
     }

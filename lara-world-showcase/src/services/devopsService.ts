@@ -62,21 +62,70 @@ export interface GitHubActionsInfo {
 export interface InfrastructureInfo {
   cloud_provider: string;
   environment: string;
+  description: string;
+  backend?: {
+    hosting: string;
+    type: string;
+    description: string;
+    deployment_method: string;
+    web_server: string;
+  };
+  frontend?: {
+    hosting: string;
+    description: string;
+    deployment_method: string;
+    framework: string;
+  };
+  database?: {
+    service: string;
+    engine: string;
+    type: string;
+    description: string;
+    connection: string;
+  };
+  broadcasting?: {
+    service: string;
+    type: string;
+    description: string;
+    driver: string;
+  };
   server_specs: {
     php_version: string;
     laravel_version: string;
     database: string;
+    operating_system?: string;
   };
   services: {
     database: string;
     cache: string;
     queue: string;
     broadcasting: string;
+    session?: string;
   };
-  description: string;
+  cicd?: {
+    platform: string;
+    trigger: string;
+    deployment_target: string;
+    method: string;
+  };
+  cost_optimization?: {
+    strategy: string;
+    features: string[];
+  };
+  security?: {
+    ssl_tls: string;
+    authentication: string;
+    api_protection: string;
+    database: string;
+  };
   monitoring: {
     enabled: boolean;
     tools: string[];
+    note?: string;
+  };
+  scalability?: {
+    current_setup: string;
+    scaling_options: string[];
   };
 }
 

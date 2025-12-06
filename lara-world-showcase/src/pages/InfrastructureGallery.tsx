@@ -571,43 +571,431 @@ const InfrastructureGallery: React.FC = () => {
 
         {/* Infrastructure Tab */}
         <TabsContent value="infrastructure" className="space-y-4">
+          {/* Overview Card */}
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <Cloud className="h-5 w-5" />
+                Infrastructure Overview
+              </CardTitle>
+              <CardDescription className="text-blue-700">{devopsInfo.infrastructure.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2 text-blue-900">Cloud Provider</h4>
+                  <Badge className="bg-blue-600 text-white">{devopsInfo.infrastructure.cloud_provider}</Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2 text-blue-900">Environment</h4>
+                  <Badge variant="outline" className="border-blue-300 text-blue-700">
+                    {devopsInfo.infrastructure.environment}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Backend Infrastructure */}
+          {devopsInfo.infrastructure.backend && (
+            <Card className="border-l-4 border-l-green-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-green-600" />
+                  Backend Infrastructure
+                </CardTitle>
+                <CardDescription>{devopsInfo.infrastructure.backend.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Hosting Platform</h4>
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      {devopsInfo.infrastructure.backend.hosting}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Instance Type</h4>
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      {devopsInfo.infrastructure.backend.type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Web Server</h4>
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      {devopsInfo.infrastructure.backend.web_server}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Deployment Method</h4>
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      {devopsInfo.infrastructure.backend.deployment_method}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Frontend Infrastructure */}
+          {devopsInfo.infrastructure.frontend && (
+            <Card className="border-l-4 border-l-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Github className="h-5 w-5 text-purple-600" />
+                  Frontend Infrastructure
+                </CardTitle>
+                <CardDescription>{devopsInfo.infrastructure.frontend.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Hosting Platform</h4>
+                    <Badge variant="outline" className="border-purple-300 text-purple-700">
+                      {devopsInfo.infrastructure.frontend.hosting}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Framework</h4>
+                    <Badge variant="outline" className="border-purple-300 text-purple-700">
+                      {devopsInfo.infrastructure.frontend.framework}
+                    </Badge>
+                  </div>
+                  <div className="md:col-span-2">
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Deployment Method</h4>
+                    <Badge variant="outline" className="border-purple-300 text-purple-700">
+                      {devopsInfo.infrastructure.frontend.deployment_method}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Database Infrastructure */}
+          {devopsInfo.infrastructure.database && (
+            <Card className="border-l-4 border-l-amber-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-amber-600" />
+                  Database Infrastructure
+                </CardTitle>
+                <CardDescription>{devopsInfo.infrastructure.database.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Service Provider</h4>
+                    <Badge variant="outline" className="border-amber-300 text-amber-700">
+                      {devopsInfo.infrastructure.database.service}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Database Engine</h4>
+                    <Badge variant="outline" className="border-amber-300 text-amber-700">
+                      {devopsInfo.infrastructure.database.engine}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Service Type</h4>
+                    <Badge variant="outline" className="border-amber-300 text-amber-700">
+                      {devopsInfo.infrastructure.database.type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Connection</h4>
+                    <Badge variant="outline" className="border-amber-300 text-amber-700">
+                      {devopsInfo.infrastructure.database.connection}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Broadcasting Service */}
+          {devopsInfo.infrastructure.broadcasting && (
+            <Card className="border-l-4 border-l-pink-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Rocket className="h-5 w-5 text-pink-600" />
+                  Broadcasting Service
+                </CardTitle>
+                <CardDescription>{devopsInfo.infrastructure.broadcasting.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Service Provider</h4>
+                    <Badge variant="outline" className="border-pink-300 text-pink-700">
+                      {devopsInfo.infrastructure.broadcasting.service}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Service Type</h4>
+                    <Badge variant="outline" className="border-pink-300 text-pink-700">
+                      {devopsInfo.infrastructure.broadcasting.type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Driver</h4>
+                    <Badge variant="outline" className="border-pink-300 text-pink-700">
+                      {devopsInfo.infrastructure.broadcasting.driver}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Server Specifications */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Cloud className="h-5 w-5" />
-                Infrastructure Details
+                <Terminal className="h-5 w-5" />
+                Server Specifications
               </CardTitle>
-              <CardDescription>{devopsInfo.infrastructure.description}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold mb-2">Cloud Provider</h4>
-                  <Badge variant="outline">{devopsInfo.infrastructure.cloud_provider}</Badge>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">PHP Version</h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                    {devopsInfo.infrastructure.server_specs.php_version}
+                  </code>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">Environment</h4>
-                  <Badge variant="outline">{devopsInfo.infrastructure.environment}</Badge>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">Laravel Version</h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                    {devopsInfo.infrastructure.server_specs.laravel_version}
+                  </code>
+                </div>
+                {devopsInfo.infrastructure.server_specs.operating_system && (
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Operating System</h4>
+                    <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                      {devopsInfo.infrastructure.server_specs.operating_system}
+                    </code>
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">Database Driver</h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                    {devopsInfo.infrastructure.server_specs.database}
+                  </code>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div>
-                <h4 className="font-semibold mb-2">Server Specifications</h4>
-                <div className="space-y-2 text-sm">
-                  <p><strong>PHP Version:</strong> {devopsInfo.infrastructure.server_specs.php_version}</p>
-                  <p><strong>Laravel Version:</strong> {devopsInfo.infrastructure.server_specs.laravel_version}</p>
-                  <p><strong>Database:</strong> {devopsInfo.infrastructure.server_specs.database}</p>
+          {/* Services Configuration */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Box className="h-5 w-5" />
+                Services Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">Database</h4>
+                  <Badge variant="outline">{devopsInfo.infrastructure.services.database}</Badge>
                 </div>
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">Cache</h4>
+                  <Badge variant="outline">{devopsInfo.infrastructure.services.cache}</Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">Queue</h4>
+                  <Badge variant="outline">{devopsInfo.infrastructure.services.queue}</Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm text-gray-700">Broadcasting</h4>
+                  <Badge variant="outline">{devopsInfo.infrastructure.services.broadcasting}</Badge>
+                </div>
+                {devopsInfo.infrastructure.services.session && (
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Session</h4>
+                    <Badge variant="outline">{devopsInfo.infrastructure.services.session}</Badge>
+                  </div>
+                )}
               </div>
+            </CardContent>
+          </Card>
 
-              <div>
-                <h4 className="font-semibold mb-2">Services</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <p><strong>Database:</strong> {devopsInfo.infrastructure.services.database}</p>
-                  <p><strong>Cache:</strong> {devopsInfo.infrastructure.services.cache}</p>
-                  <p><strong>Queue:</strong> {devopsInfo.infrastructure.services.queue}</p>
-                  <p><strong>Broadcasting:</strong> {devopsInfo.infrastructure.services.broadcasting}</p>
+          {/* CI/CD Configuration */}
+          {devopsInfo.infrastructure.cicd && (
+            <Card className="bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GitBranch className="h-5 w-5" />
+                  CI/CD Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Platform</h4>
+                    <Badge variant="outline" className="border-gray-300">
+                      {devopsInfo.infrastructure.cicd.platform}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Trigger</h4>
+                    <Badge variant="outline" className="border-gray-300">
+                      {devopsInfo.infrastructure.cicd.trigger}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Deployment Target</h4>
+                    <Badge variant="outline" className="border-gray-300">
+                      {devopsInfo.infrastructure.cicd.deployment_target}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Method</h4>
+                    <Badge variant="outline" className="border-gray-300">
+                      {devopsInfo.infrastructure.cicd.method}
+                    </Badge>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cost Optimization */}
+          {devopsInfo.infrastructure.cost_optimization && (
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-900">
+                  <CheckCircle2 className="h-5 w-5" />
+                  Cost Optimization Strategy
+                </CardTitle>
+                <CardDescription className="text-green-700">
+                  {devopsInfo.infrastructure.cost_optimization.strategy}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {devopsInfo.infrastructure.cost_optimization.features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Security Features */}
+          {devopsInfo.infrastructure.security && (
+            <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-900">
+                  <Key className="h-5 w-5" />
+                  Security Features
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">SSL/TLS</h4>
+                    <Badge variant="outline" className="border-red-300 text-red-700">
+                      {devopsInfo.infrastructure.security.ssl_tls}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Authentication</h4>
+                    <Badge variant="outline" className="border-red-300 text-red-700">
+                      {devopsInfo.infrastructure.security.authentication}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">API Protection</h4>
+                    <Badge variant="outline" className="border-red-300 text-red-700">
+                      {devopsInfo.infrastructure.security.api_protection}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Database Security</h4>
+                    <Badge variant="outline" className="border-red-300 text-red-700">
+                      {devopsInfo.infrastructure.security.database}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Scalability Information */}
+          {devopsInfo.infrastructure.scalability && (
+            <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-900">
+                  <Rocket className="h-5 w-5" />
+                  Scalability
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm text-blue-900">Current Setup</h4>
+                  <p className="text-sm text-gray-700">{devopsInfo.infrastructure.scalability.current_setup}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3 text-sm text-blue-900">Scaling Options</h4>
+                  <div className="space-y-2">
+                    {devopsInfo.infrastructure.scalability.scaling_options.map((option, index) => (
+                      <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                        <span className="text-blue-500 mt-0.5">→</span>
+                        <span>{option}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Monitoring */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                Monitoring
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {devopsInfo.infrastructure.monitoring.enabled ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <span className="text-sm">Monitoring Enabled</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm text-gray-500">Monitoring Not Configured</span>
+                    </>
+                  )}
+                </div>
+                {devopsInfo.infrastructure.monitoring.tools && devopsInfo.infrastructure.monitoring.tools.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm text-gray-700">Tools</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {devopsInfo.infrastructure.monitoring.tools.map((tool, index) => (
+                        <Badge key={index} variant="outline">
+                          {tool}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {devopsInfo.infrastructure.monitoring.note && (
+                  <p className="text-sm text-gray-600 italic">{devopsInfo.infrastructure.monitoring.note}</p>
+                )}
               </div>
             </CardContent>
           </Card>

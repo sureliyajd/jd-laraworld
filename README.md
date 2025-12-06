@@ -547,8 +547,6 @@ php artisan test --coverage
 - **CSRF Protection** for web routes
 - **Password Hashing** (bcrypt)
 - **SQL Injection Protection** (Eloquent ORM)
-- **XSS Protection**
-- **Secure File Upload** validation
 
 ---
 

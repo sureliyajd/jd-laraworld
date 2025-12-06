@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # **CHANGE ME**: Subdirectory in your repo containing the Laravel app
+      # **CHANGE ME**: Subdirectory in your repo containing the Laravel app 
       # Set to "." if Laravel is at the repo root, or "backend" if it's in a subfolder
       LARAVEL_DIR: backend
       # **CHANGE ME**: Path to your app directory on the server

@@ -53,14 +53,8 @@ class UserController extends Controller
             $isVisitor = $userRole && $userRole->name === 'visitor';
             
             if ($isVisitor) {
-                // Visitor role users have specific filtering rules
-                if ($user->parent_id === null) {
-                    // Visitor user is a parent: show only users with this user's parent_id (their children)
-                    $query->where('parent_id', $user->id);
-                } else {
-                    // Visitor user is not a parent (has a parent_id): show only their own profile
-                    $query->where('id', $user->id);
-                }
+                // Visitor users can see users they created (their children)
+                $query->where('parent_id', $user->id);
             } else {
                 // Non-visitor users with "view users" permission: see themselves and their children
                 if ($user->checkPermission('view users')) {
@@ -219,15 +213,14 @@ class UserController extends Controller
             // Determine parent_id based on creator
             $parentId = null;
             if ($isSuperAdmin) {
-                // Super admin: set parent_id to super admin's ID (so all users created by super admin are under them)
-                $parentId = $creator->id;
+                // Super admin creates independent visitor accounts with no parent
+                $parentId = null;
             } else {
-                // Non-super admin users: set parent_id to creator's effective user
-                // If creator is a main user (parent_id = null), new user's parent_id = creator's id
-                // If creator is a team member (parent_id != null), new user's parent_id = creator's effective user's id
-                $effectiveUser = $creator->getEffectiveUser();
-                $parentId = $effectiveUser->id;
+                // Non-super admin (visitor) creates users under their account
+                // These users will have parent_id = visitor's ID
+                $parentId = $creator->id;
             }
+            Log::info('Parent ID: ' . $parentId);
 
             // Create the user
             $user = User::create([
@@ -345,21 +338,11 @@ class UserController extends Controller
             $isVisitor = $userRole && $userRole->name === 'visitor';
             
             if ($isVisitor) {
-                // Visitor role users have specific viewing rules
-                if ($currentUser->parent_id === null) {
-                    // Visitor user is a parent: can only view users with this user's parent_id (their children)
-                    if ($user->parent_id !== $currentUser->id) {
-                        return response()->json([
-                            'message' => 'You do not have permission to view this user'
-                        ], 403);
-                    }
-                } else {
-                    // Visitor user is not a parent (has a parent_id): can only view their own profile
-                    if ($user->id !== $currentUser->id) {
-                        return response()->json([
-                            'message' => 'You do not have permission to view this user'
-                        ], 403);
-                    }
+                // Visitor users can only view their children (users they created)
+                if ($user->parent_id !== $currentUser->id) {
+                    return response()->json([
+                        'message' => 'You do not have permission to view this user'
+                    ], 403);
                 }
             } else {
                 // Non-visitor users with "view users" permission: can view themselves or their children
@@ -404,21 +387,11 @@ class UserController extends Controller
             $isVisitor = $userRole && $userRole->name === 'visitor';
             
             if ($isVisitor) {
-                // Visitor role users have specific editing rules
-                if ($currentUser->parent_id === null) {
-                    // Visitor user is a parent: can only edit users with this user's parent_id (their children)
-                    if ($user->parent_id !== $currentUser->id) {
-                        return response()->json([
-                            'message' => 'You do not have permission to edit this user'
-                        ], 403);
-                    }
-                } else {
-                    // Visitor user is not a parent (has a parent_id): can only edit their own profile
-                    if ($user->id !== $currentUser->id) {
-                        return response()->json([
-                            'message' => 'You do not have permission to edit this user'
-                        ], 403);
-                    }
+                // Visitor users can only edit their children (users they created)
+                if ($user->parent_id !== $currentUser->id) {
+                    return response()->json([
+                        'message' => 'You do not have permission to edit this user'
+                    ], 403);
                 }
             } else {
                 // Non-visitor users: can edit themselves or their children
@@ -541,17 +514,8 @@ class UserController extends Controller
             $isVisitor = $userRole && $userRole->name === 'visitor';
             
             if ($isVisitor) {
-                // Visitor role users have specific deletion rules
-                if ($currentUser->parent_id === null) {
-                    // Visitor user is a parent: can only delete users with this user's parent_id (their children)
-                    if ($user->parent_id !== $currentUser->id) {
-                        return response()->json([
-                            'message' => 'You do not have permission to delete this user'
-                        ], 403);
-                    }
-                } else {
-                    // Visitor user is not a parent (has a parent_id): cannot delete anyone
-                    // (they can only see themselves and cannot delete themselves per check above)
+                // Visitor users can only delete their children (users they created)
+                if ($user->parent_id !== $currentUser->id) {
                     return response()->json([
                         'message' => 'You do not have permission to delete this user'
                     ], 403);
@@ -642,14 +606,8 @@ class UserController extends Controller
             $isVisitor = $userRole && $userRole->name === 'visitor';
             
             if ($isVisitor) {
-                // Visitor role users have specific filtering rules
-                if ($user->parent_id === null) {
-                    // Visitor user is a parent: show only users with this user's parent_id (their children)
-                    $baseQuery->where('parent_id', $user->id);
-                } else {
-                    // Visitor user is not a parent (has a parent_id): show only their own profile
-                    $baseQuery->where('id', $user->id);
-                }
+                // Visitor users can only see stats for their children (users they created)
+                $baseQuery->where('parent_id', $user->id);
             } else {
                 // Non-visitor users with "view users" permission: see themselves and their children
                 $baseQuery->where(function ($q) use ($user) {
@@ -720,14 +678,8 @@ class UserController extends Controller
             $isVisitor = $userRole && $userRole->name === 'visitor';
             
             if ($isVisitor) {
-                // Visitor role users have specific filtering rules
-                if ($user->parent_id === null) {
-                    // Visitor user is a parent: show only users with this user's parent_id (their children)
-                    $query->where('parent_id', $user->id);
-                } else {
-                    // Visitor user is not a parent (has a parent_id): show only their own profile
-                    $query->where('id', $user->id);
-                }
+                // Visitor users can only see their children (users they created)
+                $query->where('parent_id', $user->id);
             } else {
                 // Non-visitor users with "view users" permission: see themselves and their children
                 if ($user->checkPermission('view users')) {

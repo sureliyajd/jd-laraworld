@@ -209,6 +209,51 @@ class EmailLogController extends Controller
     }
 
     /**
+     * Remove the specified email log from storage.
+     * Only super admins can delete email logs.
+     */
+    public function destroy(Request $request, string $id): JsonResponse
+    {
+        $user = $request->user();
+        
+        // Only super admins can delete email logs
+        if (!$user->isSuperAdmin()) {
+            return response()->json([
+                'message' => 'You do not have permission to delete email logs'
+            ], 403);
+        }
+
+        $emailLog = EmailLog::findOrFail($id);
+
+        try {
+            $emailLog->delete();
+
+            Log::info('Email log deleted by super admin', [
+                'email_log_id' => $id,
+                'deleted_by' => $user->id,
+                'subject' => $emailLog->subject,
+                'recipient' => $emailLog->recipient_email,
+            ]);
+
+            return response()->json([
+                'message' => 'Email log deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to delete email log', [
+                'email_log_id' => $id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to delete email log',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Get email statistics
      */
     public function statistics(Request $request): JsonResponse

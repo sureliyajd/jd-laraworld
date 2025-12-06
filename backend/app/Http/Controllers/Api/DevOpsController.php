@@ -81,37 +81,67 @@ class DevOpsController extends Controller
     private function getDockerInfo(): array
     {
         $dockerfilePath = base_path('Dockerfile');
-        $dockerComposePath = base_path('docker-compose.yml');
+        $nginxConfPath = base_path('nginx-prod.conf');
+        $dockerStartPath = base_path('docker-start.sh');
         $dockerIgnorePath = base_path('.dockerignore');
 
         return [
-            'enabled' => File::exists($dockerfilePath) || File::exists($dockerComposePath),
+            'enabled' => File::exists($dockerfilePath),
             'files' => [
                 'Dockerfile' => [
                     'exists' => File::exists($dockerfilePath),
                     'path' => 'Dockerfile',
                     'content' => File::exists($dockerfilePath) ? File::get($dockerfilePath) : null,
-                    'description' => 'Docker containerization configuration for the Laravel application',
+                    'description' => 'Production-ready Docker configuration with PHP 8.2-FPM and Nginx bundled in a single container. Includes comprehensive documentation for deployment setup, environment variables, and Passport OAuth key configuration.',
                 ],
-                'docker-compose.yml' => [
-                    'exists' => File::exists($dockerComposePath),
-                    'path' => 'docker-compose.yml',
-                    'content' => File::exists($dockerComposePath) ? File::get($dockerComposePath) : null,
-                    'description' => 'Docker Compose configuration for multi-container Docker applications',
+                'nginx-prod.conf' => [
+                    'exists' => File::exists($nginxConfPath),
+                    'path' => 'nginx-prod.conf',
+                    'content' => File::exists($nginxConfPath) ? File::get($nginxConfPath) : null,
+                    'description' => 'Nginx web server configuration optimized for Laravel. Includes security headers, gzip compression, static asset caching, and PHP-FPM FastCGI settings.',
+                ],
+                'docker-start.sh' => [
+                    'exists' => File::exists($dockerStartPath),
+                    'path' => 'docker-start.sh',
+                    'content' => File::exists($dockerStartPath) ? File::get($dockerStartPath) : null,
+                    'description' => 'Container startup script that validates environment variables, configures Passport OAuth keys (supports both environment variables and secret file mounts), caches Laravel configuration, and starts PHP-FPM and Nginx services.',
                 ],
                 '.dockerignore' => [
                     'exists' => File::exists($dockerIgnorePath),
                     'path' => '.dockerignore',
                     'content' => File::exists($dockerIgnorePath) ? File::get($dockerIgnorePath) : null,
-                    'description' => 'Files and directories to exclude from Docker builds',
+                    'description' => 'Files and directories excluded from Docker builds for smaller image size.',
                 ],
             ],
-            'description' => 'Docker containerization setup for consistent development and deployment environments',
+            'description' => 'Production-ready Docker setup with Nginx + PHP-FPM in a single container. Designed for easy deployment to any cloud platform (Render, AWS, DigitalOcean, Google Cloud Run, etc.).',
             'features' => [
-                'Multi-stage builds for optimized images',
-                'Development and production configurations',
-                'Service orchestration with Docker Compose',
-                'Volume management for persistent data',
+                'Single unified Dockerfile for production deployment',
+                'PHP 8.2-FPM with all Laravel required extensions',
+                'Nginx web server with optimized configuration',
+                'Automatic Passport OAuth key setup (via env vars or secret files)',
+                'Laravel configuration caching on startup',
+                'Health check endpoint for container orchestration',
+                'Security headers and gzip compression',
+                'Compatible with Render, AWS ECS, DigitalOcean, Google Cloud Run',
+            ],
+            'deployment_steps' => [
+                '1. Generate APP_KEY: php artisan key:generate --show',
+                '2. Generate Passport keys: php artisan passport:keys',
+                '3. Set environment variables in your deployment platform',
+                '4. Configure Passport keys (env vars or secret files)',
+                '5. Build and deploy the container',
+                '6. Run migrations: php artisan migrate --force',
+                '7. Create Passport client: php artisan passport:client --personal',
+            ],
+            'required_env_vars' => [
+                'APP_KEY' => 'Laravel application key (base64 encoded)',
+                'APP_ENV' => 'Environment (production)',
+                'APP_URL' => 'Your API URL',
+                'DB_CONNECTION' => 'Database driver (mysql, pgsql)',
+                'DB_HOST' => 'Database host',
+                'DB_DATABASE' => 'Database name',
+                'DB_USERNAME' => 'Database username',
+                'DB_PASSWORD' => 'Database password',
             ],
         ];
     }

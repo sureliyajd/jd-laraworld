@@ -130,6 +130,18 @@ class EmailService {
     const data = await response.json();
     return data.data;
   }
+
+  async deleteEmailLog(id: number): Promise<void> {
+    const response = await fetch(`${this.API_BASE}/email-logs/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete email log');
+    }
+  }
 }
 
 export const emailService = new EmailService();

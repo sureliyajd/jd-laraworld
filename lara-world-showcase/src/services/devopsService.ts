@@ -20,6 +20,10 @@ export interface DockerInfo {
   };
   description: string;
   features: string[];
+  deployment_steps?: string[];
+  required_env_vars?: {
+    [key: string]: string;
+  };
 }
 
 export interface TerraformInfo {

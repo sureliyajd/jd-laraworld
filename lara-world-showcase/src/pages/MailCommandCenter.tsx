@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { 
   Mail, 
   Send, 
@@ -19,7 +20,8 @@ import {
   User,
   Calendar,
   Search,
-  Filter
+  Filter,
+  Trash2
 } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -28,11 +30,13 @@ import { useToast } from '@/hooks/use-toast';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { PublicUserNotice } from '@/components/PublicUserNotice';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useAuth } from '@/hooks/useAuth';
 import MailerManagement from '@/components/MailerManagement';
 
 const MailCommandCenter: React.FC = () => {
   const { toast } = useToast();
   const { isPublicUser } = usePermissions();
+  const { user: currentUser } = useAuth();
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +45,19 @@ const MailCommandCenter: React.FC = () => {
   const [selectedEmail, setSelectedEmail] = useState<EmailLog | null>(null);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [emailToDelete, setEmailToDelete] = useState<EmailLog | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Check if current user is super admin
+  const isSuperAdmin = React.useMemo(() => {
+    if (!currentUser?.roles) return false;
+    const roles = Array.isArray(currentUser.roles) ? currentUser.roles : [];
+    return roles.some((role: any) => {
+      const roleName = typeof role === 'string' ? role : role?.name;
+      return roleName === 'super_admin';
+    });
+  }, [currentUser]);
   
   // Compose form state
   const [composeForm, setComposeForm] = useState<SendEmailData>({
@@ -149,6 +166,36 @@ const MailCommandCenter: React.FC = () => {
   const handleViewEmail = (email: EmailLog) => {
     setSelectedEmail(email);
     setIsViewDialogOpen(true);
+  };
+
+  const handleDeleteClick = (email: EmailLog) => {
+    setEmailToDelete(email);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!emailToDelete) return;
+
+    try {
+      setDeleting(true);
+      await emailService.deleteEmailLog(emailToDelete.id);
+      toast({
+        title: 'Success',
+        description: 'Email log deleted successfully',
+      });
+      setIsDeleteDialogOpen(false);
+      setEmailToDelete(null);
+      fetchEmailLogs();
+      fetchStatistics();
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to delete email log',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -424,6 +471,17 @@ const MailCommandCenter: React.FC = () => {
                     >
                       View Details
                     </Button>
+                    {isSuperAdmin && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteClick(log)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -565,6 +623,35 @@ const MailCommandCenter: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Email Log</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this email log? This action cannot be undone.
+                  {emailToDelete && (
+                    <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
+                      <p><strong>Subject:</strong> {emailToDelete.subject}</p>
+                      <p><strong>Recipient:</strong> {emailToDelete.recipient_email}</p>
+                      <p><strong>Sent by:</strong> {emailToDelete.sender.name}</p>
+                    </div>
+                  )}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
 
         <TabsContent value="mailers">

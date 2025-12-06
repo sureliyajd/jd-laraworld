@@ -334,6 +334,108 @@ See detailed configuration in:
 
 ---
 
+## 🐳 Docker Deployment
+
+The backend includes a production-ready Dockerfile that bundles Nginx + PHP-FPM for easy deployment to any cloud platform (Render, AWS, DigitalOcean, etc.).
+
+### Step 1: Generate Required Keys Locally
+
+Before deploying, generate these keys on your local machine:
+
+```bash
+cd backend
+
+# Generate Laravel application key
+php artisan key:generate --show
+# Output: base64:xxxxxxxxxxxxx... (copy this)
+
+# Generate Passport OAuth keys
+php artisan passport:keys
+# Creates: storage/oauth-private.key and storage/oauth-public.key
+```
+
+### Step 2: Set Environment Variables
+
+Configure these environment variables in your deployment platform:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `APP_KEY` | Laravel app key (from step 1) | `base64:xxxxx...` |
+| `APP_ENV` | Environment | `production` |
+| `APP_DEBUG` | Debug mode | `false` |
+| `APP_URL` | Your API URL | `https://api.yourdomain.com` |
+| `DB_CONNECTION` | Database driver | `mysql` |
+| `DB_HOST` | Database host | `your-db-host.com` |
+| `DB_PORT` | Database port | `3306` |
+| `DB_DATABASE` | Database name | `laraworld` |
+| `DB_USERNAME` | Database username | `your_user` |
+| `DB_PASSWORD` | Database password | `your_password` |
+
+### Step 3: Configure Passport OAuth Keys
+
+Choose one of these options:
+
+**Option A: Environment Variables (Recommended)**
+```bash
+# Set the contents of your key files as environment variables:
+PASSPORT_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
+...your private key content...
+-----END RSA PRIVATE KEY-----"
+
+PASSPORT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----
+...your public key content...
+-----END PUBLIC KEY-----"
+```
+
+**Option B: Secret Files**
+Mount your keys to:
+- `/etc/secrets/oauth-private.key`
+- `/etc/secrets/oauth-public.key`
+
+### Step 4: Build and Deploy
+
+```bash
+cd backend
+
+# Build the Docker image
+docker build -t laraworld-backend .
+
+# Run locally for testing
+docker run -p 80:80 \
+  -e APP_KEY="base64:your-key-here" \
+  -e APP_ENV=production \
+  -e DB_CONNECTION=mysql \
+  -e DB_HOST=host.docker.internal \
+  -e DB_DATABASE=laraworld \
+  -e DB_USERNAME=root \
+  -e DB_PASSWORD=password \
+  laraworld-backend
+```
+
+### Step 5: Post-Deployment Setup
+
+After the container is running, execute these one-time commands:
+
+```bash
+# SSH into your container/server and run:
+php artisan migrate --force
+php artisan db:seed --force
+php artisan passport:client --personal --name="Personal Access Client"
+```
+
+### Docker Deployment Platforms
+
+The Dockerfile works with:
+- **Render.com** - Use Web Service with Docker runtime
+- **AWS ECS/Fargate** - Deploy as container
+- **DigitalOcean App Platform** - Use container deployment
+- **Google Cloud Run** - Serverless container
+- **Heroku** - With container registry
+
+> **Note:** The container exposes port 80 (Nginx). Configure your platform to route traffic to this port.
+
+---
+
 ## 📁 Project Structure
 
 ```

@@ -12,7 +12,10 @@ import {
   CheckCircle2,
   XCircle,
   FileCode,
-  Cloud
+  Cloud,
+  Terminal,
+  Key,
+  Rocket
 } from 'lucide-react';
 import { devopsService, DevOpsInfo } from '@/services/devopsService';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -212,48 +215,126 @@ const InfrastructureGallery: React.FC = () => {
               </CardTitle>
               <CardDescription>{devopsInfo.docker.description}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {devopsInfo.docker.enabled ? (
                 <>
-                  <div>
-                    <h4 className="font-semibold mb-2">Features</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                  {/* Features Section */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-800">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Features
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {devopsInfo.docker.features.map((feature, index) => (
-                        <li key={index}>{feature}</li>
+                        <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                          <span className="text-green-500 mt-0.5">✓</span>
+                          <span>{feature}</span>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                  <div className="space-y-4">
-                    {Object.entries(devopsInfo.docker.files).map(([filename, file]) => (
-                      <Card key={filename}>
-                        <CardHeader>
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <FileCode className="h-4 w-4" />
-                            {filename}
-                          </CardTitle>
-                          <CardDescription>{file.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {file.exists && file.content ? (
-                            <ScrollArea className="h-64 w-full rounded border p-4">
-                              <pre className="text-xs">
-                                <code>{file.content}</code>
-                              </pre>
-                            </ScrollArea>
-                          ) : (
-                            <p className="text-sm text-gray-500 italic">
-                              File not found. Create this file to enable Docker configuration.
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                  {/* Deployment Steps Section */}
+                  {devopsInfo.docker.deployment_steps && devopsInfo.docker.deployment_steps.length > 0 && (
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-100">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-amber-800">
+                        <Rocket className="h-4 w-4" />
+                        Deployment Steps
+                      </h4>
+                      <ol className="space-y-2">
+                        {devopsInfo.docker.deployment_steps.map((step, index) => (
+                          <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center text-xs font-medium">
+                              {index + 1}
+                            </span>
+                            <span className="pt-0.5">{step.replace(/^\d+\.\s*/, '')}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  {/* Required Environment Variables Section */}
+                  {devopsInfo.docker.required_env_vars && Object.keys(devopsInfo.docker.required_env_vars).length > 0 && (
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-purple-800">
+                        <Key className="h-4 w-4" />
+                        Required Environment Variables
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-purple-200">
+                              <th className="text-left py-2 px-2 font-medium text-purple-800">Variable</th>
+                              <th className="text-left py-2 px-2 font-medium text-purple-800">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(devopsInfo.docker.required_env_vars).map(([key, value]) => (
+                              <tr key={key} className="border-b border-purple-100 last:border-0">
+                                <td className="py-2 px-2">
+                                  <code className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs font-mono">
+                                    {key}
+                                  </code>
+                                </td>
+                                <td className="py-2 px-2 text-gray-600">{value}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Docker Files Section */}
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <FileCode className="h-4 w-4" />
+                      Configuration Files
+                    </h4>
+                    <div className="space-y-4">
+                      {Object.entries(devopsInfo.docker.files).map(([filename, file]) => (
+                        <Card key={filename} className="border-l-4 border-l-blue-500">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Terminal className="h-4 w-4 text-blue-500" />
+                              {filename}
+                              {file.exists ? (
+                                <Badge variant="outline" className="ml-2 text-green-600 border-green-300">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Available
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="ml-2 text-gray-400 border-gray-300">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Not Found
+                                </Badge>
+                              )}
+                            </CardTitle>
+                            <CardDescription className="text-xs">{file.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            {file.exists && file.content ? (
+                              <ScrollArea className="h-72 w-full rounded border bg-gray-900 p-4">
+                                <pre className="text-xs text-gray-100">
+                                  <code>{file.content}</code>
+                                </pre>
+                              </ScrollArea>
+                            ) : (
+                              <p className="text-sm text-gray-500 italic">
+                                File not found. Create this file to enable this feature.
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 </>
               ) : (
                 <Alert>
                   <AlertDescription>
-                    Docker is not configured. Create Dockerfile and docker-compose.yml files to enable Docker support.
+                    Docker is not configured. Create a Dockerfile to enable Docker support.
                   </AlertDescription>
                 </Alert>
               )}

@@ -180,25 +180,53 @@ const InfrastructureGallery: React.FC = () => {
             </Card>
           </div>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-gray-50 to-slate-100">
             <CardHeader>
-              <CardTitle>CI/CD Pipeline</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Rocket className="h-5 w-5 text-blue-600" />
+                CI/CD Pipeline
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <p className="text-sm text-gray-600">{devopsInfo.ci_cd.description}</p>
-                <div className="flex items-center gap-2">
-                  <Badge>{devopsInfo.ci_cd.platform}</Badge>
+                
+                {/* Pipeline Info Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-gray-800 text-white">{devopsInfo.ci_cd.platform}</Badge>
+                  {devopsInfo.ci_cd.trigger && (
+                    <Badge variant="outline" className="border-blue-300 text-blue-700">
+                      Trigger: {devopsInfo.ci_cd.trigger}
+                    </Badge>
+                  )}
+                  {devopsInfo.ci_cd.deployment_method && (
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      {devopsInfo.ci_cd.deployment_method}
+                    </Badge>
+                  )}
+                  {devopsInfo.ci_cd.target_infrastructure && (
+                    <Badge variant="outline" className="border-amber-300 text-amber-700">
+                      {devopsInfo.ci_cd.target_infrastructure}
+                    </Badge>
+                  )}
                 </div>
+
+                {/* Pipeline Stages */}
                 <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Pipeline Stages</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                    {Object.entries(devopsInfo.ci_cd.stages).map(([key, value]) => (
-                      <li key={key}>
-                        <strong>{key}:</strong> {value}
-                      </li>
+                  <h4 className="font-semibold mb-3">Pipeline Stages</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {Object.entries(devopsInfo.ci_cd.stages).map(([key, value], index) => (
+                      <div key={key} className="bg-white rounded-lg p-3 border shadow-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-medium">
+                            {index + 1}
+                          </span>
+                          <span className="font-medium text-sm text-gray-800 capitalize">{key}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 ml-7">{value}</p>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -401,40 +429,133 @@ const InfrastructureGallery: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Github className="h-5 w-5" />
-                GitHub Actions Workflows
+                GitHub Actions - CI/CD Pipeline
               </CardTitle>
               <CardDescription>{devopsInfo.github_actions.description}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {devopsInfo.github_actions.enabled ? (
                 <>
-                  <div>
-                    <h4 className="font-semibold mb-2">Features</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                  {/* Features Section */}
+                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-gray-800">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Pipeline Features
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {devopsInfo.github_actions.features.map((feature, index) => (
-                        <li key={index}>{feature}</li>
+                        <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                          <span className="text-green-500 mt-0.5">✓</span>
+                          <span>{feature}</span>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                  <div className="space-y-4">
-                    {Object.entries(devopsInfo.github_actions.workflows).map(([filename, workflow]) => (
-                      <Card key={filename}>
-                        <CardHeader>
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <GitBranch className="h-4 w-4" />
-                            {workflow.path}
-                          </CardTitle>
-                          <CardDescription>{workflow.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ScrollArea className="h-64 w-full rounded border p-4">
-                            <pre className="text-xs">
-                              <code>{workflow.content}</code>
-                            </pre>
-                          </ScrollArea>
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                  {/* Deployment Flow Section */}
+                  {devopsInfo.github_actions.deployment_flow && devopsInfo.github_actions.deployment_flow.length > 0 && (
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-800">
+                        <Rocket className="h-4 w-4" />
+                        Deployment Flow
+                      </h4>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {devopsInfo.github_actions.deployment_flow.map((step, index) => (
+                          <div key={index} className="flex items-center">
+                            <div className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-xs font-medium">
+                              {index + 1}. {step}
+                            </div>
+                            {index < devopsInfo.github_actions.deployment_flow!.length - 1 && (
+                              <span className="mx-1 text-blue-300">→</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Required Secrets Section */}
+                  {devopsInfo.github_actions.required_secrets && Object.keys(devopsInfo.github_actions.required_secrets).length > 0 && (
+                    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-4 border border-amber-100">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-amber-800">
+                        <Key className="h-4 w-4" />
+                        Required GitHub Secrets
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-amber-200">
+                              <th className="text-left py-2 px-2 font-medium text-amber-800">Secret Name</th>
+                              <th className="text-left py-2 px-2 font-medium text-amber-800">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(devopsInfo.github_actions.required_secrets).map(([key, value]) => (
+                              <tr key={key} className="border-b border-amber-100 last:border-0">
+                                <td className="py-2 px-2">
+                                  <code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-mono">
+                                    {key}
+                                  </code>
+                                </td>
+                                <td className="py-2 px-2 text-gray-600">{value}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Excluded Files Section */}
+                  {devopsInfo.github_actions.excluded_files && Object.keys(devopsInfo.github_actions.excluded_files).length > 0 && (
+                    <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-4 border border-red-100">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-800">
+                        <XCircle className="h-4 w-4" />
+                        Excluded from Deployment
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {Object.entries(devopsInfo.github_actions.excluded_files).map(([pattern, reason]) => (
+                          <div key={pattern} className="flex items-center gap-2 text-sm">
+                            <code className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-mono">
+                              {pattern}
+                            </code>
+                            <span className="text-gray-500 text-xs">- {reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Workflow Files Section */}
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <FileCode className="h-4 w-4" />
+                      Workflow Files
+                    </h4>
+                    <div className="space-y-4">
+                      {Object.entries(devopsInfo.github_actions.workflows).map(([filename, workflow]) => (
+                        <Card key={filename} className="border-l-4 border-l-gray-500">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <GitBranch className="h-4 w-4 text-gray-600" />
+                              {workflow.path}
+                              <Badge variant="outline" className="ml-2 text-green-600 border-green-300">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Active
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription className="text-xs">{workflow.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ScrollArea className="h-80 w-full rounded border bg-gray-900 p-4">
+                              <pre className="text-xs text-gray-100">
+                                <code>{workflow.content}</code>
+                              </pre>
+                            </ScrollArea>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 </>
               ) : (

@@ -185,7 +185,8 @@ class DevOpsController extends Controller
      */
     private function getGitHubActionsInfo(): array
     {
-        $workflowsPath = base_path('.github/workflows');
+        // Check in parent directory for .github/workflows (since backend is a subdirectory)
+        $workflowsPath = base_path('../.github/workflows');
         $workflows = [];
         
         if (File::isDirectory($workflowsPath)) {
@@ -193,7 +194,7 @@ class DevOpsController extends Controller
             foreach ($files as $file) {
                 if (in_array($file->getExtension(), ['yml', 'yaml'])) {
                     $workflows[$file->getFilename()] = [
-                        'path' => $file->getRelativePathname(),
+                        'path' => '.github/workflows/' . $file->getFilename(),
                         'content' => File::get($file->getPathname()),
                         'description' => $this->getWorkflowDescription($file->getFilename()),
                     ];
@@ -204,13 +205,45 @@ class DevOpsController extends Controller
         return [
             'enabled' => File::isDirectory($workflowsPath) && count($workflows) > 0,
             'workflows' => $workflows,
-            'description' => 'CI/CD pipelines using GitHub Actions for automated testing, building, and deployment',
+            'description' => 'Automated CI/CD pipeline using GitHub Actions with rsync-based deployment to AWS EC2. Triggers on push to main branch for seamless continuous deployment.',
             'features' => [
-                'Automated testing on pull requests',
-                'Automated deployment on merge to main',
-                'Multi-environment deployments',
-                'Parallel job execution',
-                'Build artifact management',
+                'Automatic deployment on push to main branch',
+                'Rsync-based file transfer for efficient incremental deployments',
+                'SSH key authentication with secure GitHub Secrets',
+                'Smart file exclusions (vendor, node_modules, .env, logs)',
+                'Retry mechanism for network resilience (3 attempts)',
+                'Remote server deployment script execution',
+                'Automatic cleanup on failure',
+                'Post-deployment verification and status reporting',
+            ],
+            'deployment_flow' => [
+                'Checkout code from repository',
+                'Install rsync and SSH client',
+                'Setup SSH key from GitHub Secrets',
+                'Verify Laravel directory structure',
+                'Upload code to EC2 via rsync',
+                'Verify uploaded files on server',
+                'Sync to application directory',
+                'Set proper file ownership (www-data)',
+                'Execute server-side deploy script',
+                'Copy Passport OAuth keys with permissions',
+                'Cleanup temporary files',
+            ],
+            'required_secrets' => [
+                'SSH_PRIVATE_KEY' => 'Private SSH key for EC2 server access',
+                'SSH_USER' => 'SSH username for the EC2 instance',
+                'SERVER_IP' => 'Public IP address of the EC2 instance',
+                'SERVER_SSH_PORT' => 'SSH port number (default: 22)',
+            ],
+            'excluded_files' => [
+                '.git' => 'Git repository metadata',
+                'vendor' => 'Composer dependencies (installed on server)',
+                'node_modules' => 'NPM dependencies',
+                '.env' => 'Environment configuration (server-specific)',
+                'storage/logs/*' => 'Application log files',
+                'storage/framework/*' => 'Cache, sessions, views',
+                'tests' => 'Test files',
+                '*.sqlite' => 'SQLite database files',
             ],
         ];
     }
@@ -250,12 +283,19 @@ class DevOpsController extends Controller
         return [
             'platform' => 'GitHub Actions',
             'stages' => [
-                'test' => 'Run automated tests',
-                'build' => 'Build application artifacts',
-                'deploy' => 'Deploy to target environment',
+                'checkout' => 'Clone repository and verify Laravel structure',
+                'setup' => 'Configure SSH keys and install rsync',
+                'upload' => 'Transfer files to EC2 using rsync with retries',
+                'verify' => 'Validate uploaded files on remote server',
+                'deploy' => 'Execute deployment script on EC2',
+                'cleanup' => 'Remove temporary files and report status',
             ],
-            'environments' => ['development', 'staging', 'production'],
-            'description' => 'Continuous Integration and Continuous Deployment pipeline configuration',
+            'environments' => ['production'],
+            'description' => 'Automated deployment pipeline that deploys Laravel code to AWS EC2 on every push to main branch using rsync over SSH.',
+            'trigger' => 'Push to main branch',
+            'runner' => 'ubuntu-latest',
+            'deployment_method' => 'Rsync over SSH',
+            'target_infrastructure' => 'AWS EC2',
         ];
     }
 

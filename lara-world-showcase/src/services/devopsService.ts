@@ -50,6 +50,13 @@ export interface GitHubActionsInfo {
   };
   description: string;
   features: string[];
+  deployment_flow?: string[];
+  required_secrets?: {
+    [key: string]: string;
+  };
+  excluded_files?: {
+    [key: string]: string;
+  };
 }
 
 export interface InfrastructureInfo {
@@ -80,6 +87,10 @@ export interface CICDInfo {
   };
   environments: string[];
   description: string;
+  trigger?: string;
+  runner?: string;
+  deployment_method?: string;
+  target_infrastructure?: string;
 }
 
 class DevOpsService {

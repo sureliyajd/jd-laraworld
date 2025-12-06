@@ -170,7 +170,27 @@ jobs:
             # **CHANGE ME**: Ensure deploy script uses the correct PHP version (e.g., php8.2)
             sudo bash '${DEPLOY_SCRIPT}';
 
-            echo '=== Step 9: Cleanup temp directory ===';
+            echo '=== Step 9: Copy Passport OAuth keys ===';
+            # Copy OAuth keys from home directory to Laravel storage
+            if [ -f '/home/ubuntu/oauth-private.key' ] && [ -f '/home/ubuntu/oauth-public.key' ]; then
+              sudo cp /home/ubuntu/oauth-private.key '${APP_DIR}/storage/oauth-private.key';
+              sudo cp /home/ubuntu/oauth-public.key '${APP_DIR}/storage/oauth-public.key';
+              
+              # Set proper permissions (600 for security)
+              sudo chmod 600 '${APP_DIR}/storage/oauth-private.key';
+              sudo chmod 600 '${APP_DIR}/storage/oauth-public.key';
+              
+              # Set proper ownership to www-data
+              sudo chown www-data:www-data '${APP_DIR}/storage/oauth-private.key';
+              sudo chown www-data:www-data '${APP_DIR}/storage/oauth-public.key';
+              
+              echo '✅ Passport OAuth keys copied and permissions set';
+            else
+              echo '⚠️ WARNING: OAuth keys not found in /home/ubuntu/';
+              echo 'Please ensure oauth-private.key and oauth-public.key exist in /home/ubuntu/';
+            fi;
+
+            echo '=== Step 10: Cleanup temp directory ===';
             rm -rf '${DEPLOY_TEMP_DIR}';
 
             echo '✅ Deployment completed successfully!';

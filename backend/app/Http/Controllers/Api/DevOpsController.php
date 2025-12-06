@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class DevOpsController extends Controller
 {
@@ -185,8 +186,19 @@ class DevOpsController extends Controller
      */
     private function getGitHubActionsInfo(): array
     {
-        // Try multiple paths to find .github/workflows directory
-        // Works for both local development (backend subdirectory) and server deployment (root level)
+        $workflows = [];
+        
+        // GitHub repository configuration
+        $githubRepo = 'sureliyajd/jd-laraworld';
+        $githubBranch = 'main';
+        $githubBaseUrl = "https://raw.githubusercontent.com/{$githubRepo}/{$githubBranch}";
+        
+        // List of workflow files to fetch from GitHub
+        $workflowFiles = [
+            'deploy.yml' => '.github/workflows/deploy.yml',
+        ];
+        
+        // First, try to load from local filesystem (for local development)
         $possiblePaths = [
             base_path('.github/workflows'),      // Server deployment: .github at root level
             base_path('../.github/workflows'),   // Local dev: backend is subdirectory
@@ -201,8 +213,7 @@ class DevOpsController extends Controller
             }
         }
         
-        $workflows = [];
-        
+        // Load from local filesystem if available
         if ($workflowsPath && File::isDirectory($workflowsPath)) {
             $files = File::allFiles($workflowsPath);
             foreach ($files as $file) {
@@ -215,9 +226,30 @@ class DevOpsController extends Controller
                 }
             }
         }
+        
+        // If no local files found, fetch from GitHub repository
+        if (empty($workflows)) {
+            foreach ($workflowFiles as $filename => $filePath) {
+                try {
+                    $url = "{$githubBaseUrl}/{$filePath}";
+                    $response = Http::timeout(10)->get($url);
+                    
+                    if ($response->successful()) {
+                        $workflows[$filename] = [
+                            'path' => $filePath,
+                            'content' => $response->body(),
+                            'description' => $this->getWorkflowDescription($filename),
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    // Silently fail if GitHub fetch fails
+                    // Log error if needed: \Log::error("Failed to fetch workflow from GitHub: " . $e->getMessage());
+                }
+            }
+        }
 
         return [
-            'enabled' => $workflowsPath !== null && count($workflows) > 0,
+            'enabled' => count($workflows) > 0,
             'workflows' => $workflows,
             'description' => 'Automated CI/CD pipeline using GitHub Actions with rsync-based deployment to AWS EC2. Triggers on push to main branch for seamless continuous deployment.',
             'features' => [

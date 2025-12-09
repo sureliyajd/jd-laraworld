@@ -3,60 +3,63 @@ import { CONTACT_CONFIG } from "@/config/contact";
 
 export const Footer = () => {
   return (
-    <footer className="py-12 px-4 bg-card border-t-2 border-border">
-      <div className="container mx-auto max-w-6xl">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Name and copyright */}
-          <div className="text-center md:text-left">
-            <p className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
+    <footer className="border-t border-border/70 bg-card/70 backdrop-blur">
+      <div className="container mx-auto max-w-6xl px-4 py-12">
+        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr]">
+          <div className="space-y-3">
+            <p className="flex items-center gap-2 text-lg font-bold text-foreground">
               <span>👋</span>
               <span>Jaydeep Sureliya</span>
             </p>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>💻</span>
               <span>Full-Stack Developer</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground">
               Built with <Heart className="inline h-3 w-3 text-red-500 animate-pulse" /> and lots of 
               <span className="mx-1">☕</span>
             </p>
+            <div className="rounded-xl border border-border/70 bg-white/70 px-4 py-3 text-xs text-muted-foreground shadow-sm backdrop-blur-sm dark:bg-white/5">
+              “Design proudly crafted with AI • Every feature, API integration, and functionality built 100% by me”
+            </div>
           </div>
 
-          {/* Social links */}
-          <div className="flex items-center gap-4">
-            <a
-              href="https://github.com/sureliyajd"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-12 h-12 rounded-full bg-secondary hover:bg-purple-600 hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
-              aria-label="GitHub Profile"
-              title="GitHub"
-            >
-              <Github className="w-5 h-5" />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/jd-sureliya"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-12 h-12 rounded-full bg-secondary hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
-              aria-label="LinkedIn Profile"
-              title="LinkedIn"
-            >
-              <Linkedin className="w-5 h-5" />
-            </a>
-            <a
-              href={`mailto:${CONTACT_CONFIG.email}?subject=${encodeURIComponent('Hello from LaraWorld Portal')}`}
-              className="w-12 h-12 rounded-full bg-secondary hover:bg-green-600 hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
-              aria-label="Email Contact"
-              title="Send Email"
-            >
-              <Mail className="w-5 h-5" />
-            </a>
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-muted-foreground">Connect</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="https://github.com/sureliyajd"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/60 bg-secondary text-foreground transition hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary shadow-sm"
+                aria-label="GitHub Profile"
+                title="GitHub"
+              >
+                <Github className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/jd-sureliya"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/60 bg-secondary text-foreground transition hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary shadow-sm"
+                aria-label="LinkedIn Profile"
+                title="LinkedIn"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a
+                href={`mailto:${CONTACT_CONFIG.email}?subject=${encodeURIComponent('Hello from LaraWorld Portal')}`}
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/60 bg-secondary text-foreground transition hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary shadow-sm"
+                aria-label="Email Contact"
+                title="Send Email"
+              >
+                <Mail className="h-5 w-5" />
+              </a>
+            </div>
           </div>
 
-          {/* Copyright and CTA */}
-          <div className="text-center md:text-right space-y-2">
-            <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-end gap-1">
+          <div className="space-y-3 text-left md:text-right">
+            <p className="flex items-center justify-start gap-1 text-sm text-muted-foreground md:justify-end">
               <span>©</span>
               <span>{new Date().getFullYear()}</span>
               <span>Jd's LaraWorld</span>
@@ -64,29 +67,16 @@ export const Footer = () => {
             </p>
             <a
               href={`mailto:${CONTACT_CONFIG.email}?subject=${encodeURIComponent('Visitor Credentials Request - LaraWorld Portal')}&body=${encodeURIComponent(`Hi ${CONTACT_CONFIG.name},\n\nI'm interested in exploring the full features of your Laravel showcase portal. Could you please provide me with visitor credentials?\n\nThank you!`)}`}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-primary/80"
             >
               <Rocket className="h-4 w-4" />
               <span>Request Visitor Access</span>
             </a>
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-8 pt-8 border-t border-border">
-          <div className="text-center space-y-2">
-            <p className="text-xs text-muted-foreground">
-              🎉 This is a live showcase of Laravel + React full-stack development skills
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Features: <span className="font-semibold">Laravel Spatie Permissions</span> • 
-              <span className="font-semibold"> Credit System</span> • 
-              <span className="font-semibold"> OAuth2 Authentication</span> • 
-              <span className="font-semibold"> Real-Time Updates</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
+            <div className="rounded-xl border border-border/70 bg-white/70 px-4 py-3 text-xs text-muted-foreground shadow-sm backdrop-blur-sm dark:bg-white/5">
+              🎉 This is a live showcase of Laravel + React full-stack development skills. Features: <span className="font-semibold">Laravel Spatie Permissions</span> • <span className="font-semibold">Credit System</span> • <span className="font-semibold">OAuth2 Authentication</span> • <span className="font-semibold">Real-Time Updates</span>
+              <br />
               💡 <strong>Tip:</strong> Use demo credentials for view-only access, or request visitor credentials for full experience!
-            </p>
+            </div>
           </div>
         </div>
       </div>

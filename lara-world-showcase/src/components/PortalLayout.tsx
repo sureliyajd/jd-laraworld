@@ -98,12 +98,12 @@ const PortalLayoutContent = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full bg-gradient-subtle">
         {/* Sidebar */}
-        <Sidebar className="border-r">
-          <SidebarHeader className="border-b p-4">
+        <Sidebar className="border-r border-border/70 bg-white/80 backdrop-blur-xl dark:bg-sidebar-background">
+          <SidebarHeader className="border-b border-border/70 p-4">
             <div className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-glow">
                 <Globe className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>
@@ -115,7 +115,7 @@ const PortalLayoutContent = () => {
 
           <SidebarContent className="p-2">
             <SidebarGroup>
-              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground">Navigation</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.map((item) => (
@@ -123,7 +123,7 @@ const PortalLayoutContent = () => {
                       <SidebarMenuButton
                         onClick={() => handleNavigation(item.url)}
                         isActive={location.pathname === item.url}
-                        className="w-full justify-start"
+                        className="w-full justify-start rounded-lg border border-transparent transition hover:-translate-y-0.5 hover:border-primary/30"
                       >
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
@@ -143,7 +143,7 @@ const PortalLayoutContent = () => {
             {isVisitor && hasCredits && (
               <SidebarGroup className="mt-4">
                 <SidebarGroupContent>
-                  <div className="p-2">
+                  <div className="rounded-xl border border-border/70 bg-secondary/60 p-3 backdrop-blur-sm">
                     <VisitorCreditDisplay user={user} compact={true} />
                   </div>
                 </SidebarGroupContent>
@@ -151,17 +151,17 @@ const PortalLayoutContent = () => {
             )}
           </SidebarContent>
 
-          <SidebarFooter className="border-t p-4">
+          <SidebarFooter className="border-t border-border/70 p-4">
             <div className="flex items-center space-x-3">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-9 w-9 border border-border/60">
                 <AvatarImage src="" alt={user?.name || "User"} />
                 <AvatarFallback>
                   {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.name || "User"}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || "user@example.com"}</p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{user?.name || "User"}</p>
+                <p className="truncate text-xs text-muted-foreground">{user?.email || "user@example.com"}</p>
               </div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
@@ -173,7 +173,7 @@ const PortalLayoutContent = () => {
         {/* Main Content Area */}
         <div className="flex flex-1 flex-col">
           {/* Top Navigation Bar */}
-          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="border-b border-border/70 bg-white/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 dark:bg-background/80">
             <div className="flex h-16 items-center justify-between px-6">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger />
@@ -192,7 +192,7 @@ const PortalLayoutContent = () => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto bg-gradient-subtle">
+          <main className="flex-1 overflow-auto">
             <div className="container mx-auto p-6">
               <Outlet />
             </div>

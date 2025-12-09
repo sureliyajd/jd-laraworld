@@ -1,4 +1,5 @@
 import { Shield, Zap, Bell, Mail, Database, GitBranch, Users, FileText, Coins, Key, Lock, Rocket, TestTube } from "lucide-react";
+import { motion } from "framer-motion";
 
 const features = [
   {
@@ -122,52 +123,60 @@ const features = [
 
 export const Features = () => {
   return (
-    <section id="features" className="py-24 px-4 bg-gradient-subtle">
+    <section id="features" className="section-shell bg-gradient-subtle py-24 px-4">
       <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r from-purple-100 to-blue-100 mb-6 border-2 border-purple-300">
-            <Rocket className="w-10 h-10 text-purple-600" />
+        <div className="mb-16 text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-glow backdrop-blur-md dark:border-white/10 dark:bg-white/5">
+            <Rocket className="h-10 w-10 text-primary" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 flex items-center justify-center gap-3 flex-wrap">
+          <h2 className="flex flex-wrap items-center justify-center gap-3 text-4xl font-bold text-foreground md:text-5xl">
             <span>✨</span>
             <span>Features & Capabilities</span>
             <span>🚀</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Explore the <span className="font-semibold text-purple-600">production-level features</span> implemented in this demo portal! 
+          <p className="mx-auto mt-4 max-w-3xl text-xl text-muted-foreground">
+            Explore the <span className="font-semibold text-primary">production-level features</span> implemented in this demo portal! 
             Each feature is carefully crafted to showcase real-world development skills! 
             <span className="ml-1">🎉</span>
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="card-grid">
           {features.map((feature, index) => (
-            <div
-              key={index}
-              className={`group p-6 rounded-2xl bg-gradient-to-br ${feature.bgColor} border-2 ${feature.borderColor} hover:shadow-xl transition-all duration-300 animate-fade-in hover:scale-105`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ delay: index * 0.04, duration: 0.4, type: "spring", stiffness: 120, damping: 18 }}
+              className="group rounded-2xl border border-border/70 bg-white/80 p-6 shadow-sm backdrop-blur-md transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-elevated dark:bg-white/5"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center text-white text-3xl group-hover:scale-110 transition-transform shadow-lg`}>
+              <div className="flex items-center gap-3">
+                <div className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${feature.color} text-2xl text-white shadow-lg ring-4 ring-white/50 transition duration-300 group-hover:scale-110 dark:ring-white/10`}>
                   {feature.emoji}
                 </div>
+                <div className="rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-semibold text-muted-foreground backdrop-blur-sm">
+                  <feature.icon className="mr-2 inline-block h-4 w-4 text-primary/80" />
+                  {feature.title.split(" ")[0]}
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground leading-relaxed text-sm">{feature.description}</p>
-            </div>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+            </motion.div>
           ))}
         </div>
 
-        {/* Additional Info */}
-        <div className="mt-12 text-center p-8 rounded-2xl bg-gradient-to-r from-purple-100 to-blue-100 border-2 border-purple-300">
-          <p className="text-lg text-gray-800 font-semibold mb-2">
-            🎯 Want to see these features in action?
-          </p>
-          <p className="text-base text-gray-700">
-            Enter the demo portal to explore all these amazing features! 
-            Use public credentials for view-only access, or request visitor credentials for full experience! 
-            <span className="ml-1">✨</span>
-          </p>
+        <div className="mt-14">
+          <div className="glass-panel text-center rounded-2xl px-10 py-8">
+            <p className="text-lg font-semibold text-foreground mb-2">
+              🎯 Want to see these features in action?
+            </p>
+            <p className="text-base text-muted-foreground">
+              Enter the demo portal to explore all these amazing features! 
+              Use public credentials for view-only access, or request visitor credentials for full experience! 
+              <span className="ml-1">✨</span>
+            </p>
+          </div>
         </div>
       </div>
     </section>

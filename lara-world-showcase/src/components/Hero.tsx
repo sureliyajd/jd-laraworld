@@ -1,133 +1,160 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Rocket, Sparkles, Star, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { CONTACT_CONFIG } from "@/config/contact";
 
 export const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-subtle">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+    <section className="section-shell relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-subtle">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-x-0 top-10 mx-auto h-[420px] w-[720px] bg-gradient-hero opacity-30 blur-3xl" />
+        <div className="absolute left-[10%] top-[20%] h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute right-[12%] bottom-[8%] h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 py-20">
-        <div className="mx-auto text-center space-y-8 animate-fade-in">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 border-2 border-purple-300">
-            <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
-            <span className="text-sm font-bold text-purple-800">🚀 Full-Stack Development Showcase</span>
-            <Star className="w-4 h-4 text-yellow-500" />
-          </div>
+        <div className="mx-auto max-w-5xl space-y-10 text-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 12 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-5 py-2 shadow-glow backdrop-blur-md dark:border-white/10 dark:bg-white/5"
+          >
+            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+            <span className="text-sm font-semibold text-foreground">🚀 Full-Stack Development Showcase</span>
+            <Star className="h-4 w-4 text-amber-500" />
+          </motion.div>
 
-          {/* Main heading */}
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground tracking-tight flex items-center justify-center gap-3 flex-wrap">
+          <motion.h1 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.05, duration: 0.6 }}
+            className="flex flex-wrap items-center justify-center gap-3 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl md:text-7xl"
+          >
             <span>👋</span>
             <span>Welcome to</span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Jd's LaraWorld</span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent drop-shadow-sm">Jd's LaraWorld</span>
             <span>✨</span>
-          </h1>
+          </motion.h1>
 
-          {/* Tagline */}
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            🎉 A <span className="font-bold text-purple-600">live showcase</span> of my Laravel + React full-stack skills! 
+          <motion.p 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1, duration: 0.6 }}
+            className="mx-auto max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl"
+          >
+            🎉 A <span className="font-semibold text-primary">live showcase</span> of my Laravel + React full-stack skills! 
             Explore production-ready features, <span className="font-semibold">role-based permissions</span>, 
             <span className="font-semibold"> credit system</span>, and so much more! 
             <span className="ml-1">🚀</span>
-          </p>
+          </motion.p>
 
-          {/* Key Highlights */}
-          <div className="flex flex-wrap justify-center gap-3 pt-4 max-w-4xl mx-auto">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-300">
-              <span>🔐</span>
-              <span className="text-sm font-semibold text-green-800">Laravel Spatie Permissions</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-300">
-              <span>🪙</span>
-              <span className="text-sm font-semibold text-blue-800">Credit-Based System</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 border border-purple-300">
-              <span>🔑</span>
-              <span className="text-sm font-semibold text-purple-800">OAuth2 Authentication</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 border border-orange-300">
-              <span>⚡</span>
-              <span className="text-sm font-semibold text-orange-800">Real-Time Updates</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 border border-violet-300">
-              <span>🧪</span>
-              <span className="text-sm font-semibold text-violet-800">Unit Testing</span>
-            </div>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.15, duration: 0.6 }}
+            className="flex flex-wrap justify-center gap-3 pt-4"
+          >
+            {[
+              { label: "Laravel Spatie Permissions", tone: "from-green-100/70 to-emerald-50/90", text: "text-emerald-900", emoji: "🔐" },
+              { label: "Credit-Based System", tone: "from-blue-100/70 to-indigo-50/90", text: "text-indigo-900", emoji: "🪙" },
+              { label: "OAuth2 Authentication", tone: "from-purple-100/70 to-pink-50/90", text: "text-purple-900", emoji: "🔑" },
+              { label: "Real-Time Updates", tone: "from-amber-100/70 to-orange-50/90", text: "text-amber-900", emoji: "⚡" },
+              { label: "Unit Testing", tone: "from-violet-100/70 to-slate-50/90", text: "text-violet-900", emoji: "🧪" },
+            ].map((chip) => (
+              <span
+                key={chip.label}
+                className={`inline-flex items-center gap-2 rounded-full border border-white/70 bg-gradient-to-r ${chip.tone} px-4 py-2 text-xs font-semibold shadow-sm backdrop-blur-sm dark:border-white/10`}
+              >
+                <span>{chip.emoji}</span>
+                <span className={chip.text}>{chip.label}</span>
+              </span>
+            ))}
+          </motion.div>
 
-          {/* CTA Button */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
-            <Button asChild variant="hero" size="lg" className="text-base bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all">
+          <motion.div 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="flex flex-col items-center justify-center gap-4 pt-6 sm:flex-row"
+          >
+            <Button asChild variant="hero" size="lg" className="text-base shadow-glow hover:shadow-elevated">
               <Link to="/portal/login" className="inline-flex items-center gap-2">
                 <Rocket className="h-5 w-5" />
                 <span>Enter Demo Portal</span>
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-base border-2">
+            <Button asChild variant="outline" size="lg" className="text-base border-2 hover:border-primary/50 hover:shadow-sm">
               <a href="#features" className="inline-flex items-center gap-2">
                 <Zap className="h-5 w-5" />
                 <span>Explore Features</span>
               </a>
             </Button>
-          </div>
+          </motion.div>
 
-          {/* Quick Info Box */}
-          <div className="max-w-2xl mx-auto mt-8 p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
-            <p className="text-sm text-gray-800 leading-relaxed">
-              <span className="font-bold">🎭 Demo Credentials Available!</span> You can explore the portal with public demo credentials (view-only mode), 
+          <motion.div 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.25, duration: 0.6 }}
+            className="glass-panel mx-auto mt-10 max-w-2xl rounded-2xl px-7 py-6 text-left shadow-elevated"
+          >
+            <p className="text-sm leading-relaxed text-foreground">
+              <span className="font-semibold text-primary">🎭 Demo Credentials Available!</span> You can explore the portal with public demo credentials (view-only mode), 
               or <a 
                 href={`mailto:${CONTACT_CONFIG.email}?subject=${encodeURIComponent('Visitor Credentials Request - LaraWorld Portal')}&body=${encodeURIComponent(`Hi ${CONTACT_CONFIG.name},\n\nI'm interested in exploring the full features of your Laravel showcase portal. Could you please provide me with visitor credentials?\n\nThank you!`)}`}
-                className="font-semibold text-purple-700 hover:text-purple-900 underline cursor-pointer transition-colors"
+                className="font-semibold text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary/80"
               >
                 request visitor access
               </a> to experience the full power with credits! 
               <span className="ml-1">✨</span>
             </p>
-          </div>
+          </motion.div>
 
-          {/* Tech stack badges */}
-          <div className="flex flex-wrap justify-center gap-3 pt-8">
-            <div className="w-full mb-4">
-              <p className="text-sm font-semibold text-muted-foreground mb-3">🏗️ Built with these awesome technologies:</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="pt-10"
+          >
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">🏗️ Built with these awesome technologies:</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {[
+                { tech: "Laravel 12", emoji: "🔄" },
+                { tech: "React 18", emoji: "⚛️" },
+                { tech: "TypeScript 5.8", emoji: "📘" },
+                { tech: "Vite 5", emoji: "⚡" },
+                { tech: "Tailwind CSS 3.4", emoji: "🎨" },
+                { tech: "SQLite/MySQL", emoji: "💾" },
+                { tech: "Eloquent ORM", emoji: "🗄️" },
+                { tech: "RESTful APIs", emoji: "🌐" },
+                { tech: "Laravel Passport", emoji: "🔑" },
+                { tech: "OAuth2 Authentication", emoji: "🛡️" },
+                { tech: "Spatie Permissions", emoji: "🔐" },
+                { tech: "Jobs & Queues", emoji: "⚙️" },
+                { tech: "Events & Listeners", emoji: "📢" },
+                { tech: "Real-Time Broadcasting", emoji: "📡" },
+                { tech: "Notifications", emoji: "🔔" },
+                { tech: "Mailables", emoji: "📧" },
+                { tech: "File Storage", emoji: "📁" },
+                { tech: "AWS S3 Integration", emoji: "☁️" },
+                { tech: "Docker", emoji: "🐳" },
+                { tech: "CI/CD", emoji: "🚀" },
+                { tech: "Unit Testing", emoji: "🧪" },
+                { tech: "Feature Testing", emoji: "✅" },
+                { tech: "Production Ready", emoji: "🌟" }
+              ].map((item) => (
+                <span 
+                  key={item.tech} 
+                  className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-white/70 px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-glow backdrop-blur-sm dark:bg-white/10"
+                >
+                  <span className="text-lg">{item.emoji}</span>
+                  <span>{item.tech}</span>
+                </span>
+              ))}
             </div>
-            {[
-              { tech: "Laravel 12", emoji: "🔄" },
-              { tech: "React 18", emoji: "⚛️" },
-              { tech: "TypeScript 5.8", emoji: "📘" },
-              { tech: "Vite 5", emoji: "⚡" },
-              { tech: "Tailwind CSS 3.4", emoji: "🎨" },
-              { tech: "SQLite/MySQL", emoji: "💾" },
-              { tech: "Eloquent ORM", emoji: "🗄️" },
-              { tech: "RESTful APIs", emoji: "🌐" },
-              { tech: "Laravel Passport", emoji: "🔑" },
-              { tech: "OAuth2 Authentication", emoji: "🛡️" },
-              { tech: "Spatie Permissions", emoji: "🔐" },
-              { tech: "Jobs & Queues", emoji: "⚙️" },
-              { tech: "Events & Listeners", emoji: "📢" },
-              { tech: "Real-Time Broadcasting", emoji: "📡" },
-              { tech: "Notifications", emoji: "🔔" },
-              { tech: "Mailables", emoji: "📧" },
-              { tech: "File Storage", emoji: "📁" },
-              { tech: "AWS S3 Integration", emoji: "☁️" },
-              { tech: "Docker", emoji: "🐳" },
-              { tech: "CI/CD", emoji: "🚀" },
-              { tech: "Unit Testing", emoji: "🧪" },
-              { tech: "Feature Testing", emoji: "✅" },
-              { tech: "Production Ready", emoji: "🌟" }
-            ].map((item) => (
-              <span key={item.tech} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card border-2 border-border hover:border-primary/50 text-sm font-medium text-foreground transition-colors">
-                <span>{item.emoji}</span>
-                <span>{item.tech}</span>
-              </span>
-            ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

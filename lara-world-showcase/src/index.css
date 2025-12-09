@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,8 +9,8 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
+:root {
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -17,101 +19,101 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 235 70% 50%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-glow: 250 70% 60%;
+    --primary-glow: 258 83% 67%;
 
-    --secondary: 220 14% 96%;
+    --secondary: 210 24% 96%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 220 14% 96%;
+    --muted: 210 20% 92%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 250 70% 60%;
+    --accent: 258 83% 67%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 235 70% 50%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
     
     /* Custom gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(235 70% 50%), hsl(250 70% 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 83% 67%));
+    --gradient-subtle: radial-gradient(circle at 20% 20%, hsl(217 91% 60% / 0.08), transparent 35%), radial-gradient(circle at 80% 0%, hsl(258 83% 67% / 0.1), transparent 40%), linear-gradient(180deg, hsl(210 20% 98%), hsl(0 0% 100%));
     
     /* Shadows */
-    --shadow-glow: 0 0 40px hsl(235 70% 50% / 0.15);
-    --shadow-elevated: 0 10px 40px -10px hsl(235 70% 50% / 0.2);
+    --shadow-glow: 0 20px 60px hsl(217 91% 60% / 0.25);
+    --shadow-elevated: 0 20px 50px -10px hsl(222 47% 11% / 0.18);
     
     /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.28s cubic-bezier(0.33, 1, 0.68, 1);
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 210 24% 96%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-foreground: 222 47% 11%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 217 91% 60%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 100%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent: 210 20% 92%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent-foreground: 222 47% 11%;
 
-    --sidebar-border: 220 13% 91%;
+    --sidebar-border: 214 32% 91%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .dark {
     --background: 222 47% 11%;
     --foreground: 0 0% 100%;
 
-    --card: 222 47% 11%;
+    --card: 222 47% 13%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 222 47% 11%;
+    --popover: 222 47% 14%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 235 70% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 217 91% 70%;
+    --primary-foreground: 222 47% 11%;
     
-    --primary-glow: 250 70% 60%;
+    --primary-glow: 258 83% 67%;
 
-    --secondary: 217 33% 18%;
+    --secondary: 222 30% 18%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 222 30% 18%;
+    --muted-foreground: 215 20% 70%;
 
-    --accent: 250 70% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 258 83% 67%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 63% 31%;
+    --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 235 70% 50%;
+    --border: 222 30% 22%;
+    --input: 222 30% 22%;
+    --ring: 217 91% 70%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(235 70% 50%), hsl(250 70% 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(222 47% 11%), hsl(222 47% 15%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 83% 67%));
+    --gradient-subtle: radial-gradient(circle at 20% 20%, hsl(217 91% 60% / 0.12), transparent 35%), radial-gradient(circle at 80% 0%, hsl(258 83% 67% / 0.15), transparent 40%), linear-gradient(180deg, hsl(222 47% 11%), hsl(222 47% 15%));
     
-    --shadow-glow: 0 0 40px hsl(235 70% 50% / 0.3);
-    --shadow-elevated: 0 10px 40px -10px hsl(235 70% 50% / 0.4);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --shadow-glow: 0 20px 60px hsl(217 91% 60% / 0.35);
+    --shadow-elevated: 0 20px 50px -10px hsl(0 0% 0% / 0.35);
+    --sidebar-background: 222 30% 14%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 91% 70%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 222 30% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 30% 22%;
+    --sidebar-ring: 217 91% 70%;
   }
 }
 
@@ -121,6 +123,26 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    font-family: "Inter var", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    @apply bg-background text-foreground antialiased;
+    background-image: var(--gradient-subtle);
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/60 dark:bg-white/5 backdrop-blur-lg border border-white/60 dark:border-white/10 shadow-elevated;
+  }
+
+  .section-shell {
+    @apply relative isolate overflow-hidden;
+  }
+
+  .soft-shadow {
+    box-shadow: 0 25px 80px -40px hsla(220, 43%, 11%, 0.35);
+  }
+
+  .card-grid {
+    @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
   }
 }

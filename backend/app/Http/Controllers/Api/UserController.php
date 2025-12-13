@@ -97,6 +97,9 @@ class UserController extends Controller
         
         $query->orderBy($sortBy, $sortOrder);
 
+        // Eager load roles relationship so they're included in the response
+        $query->with('roles');
+
         // Pagination
         $perPage = min($request->get('per_page', 15), 100); // Max 100 per page
         

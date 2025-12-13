@@ -48,7 +48,6 @@ const PortalLayoutContent = () => {
       title: "Task Management",
       url: "/portal/tasks",
       icon: CheckSquare,
-      badge: "New",
       requiredPermission: () => can.viewAssignedTasks(), // Visible if can view any tasks
     },
     {

@@ -26,9 +26,7 @@ import {
   UserX, 
   UserPlus,
   Mail,
-  Calendar,
-  CheckCircle,
-  XCircle
+  Calendar
 } from 'lucide-react';
 import { useUserService } from '@/hooks/useUserService';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -159,6 +157,40 @@ const UserManagement: React.FC = () => {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const formatRoleName = (user: User): string => {
+    // Try to get role from user.role first, then from user.roles array
+    let role: string | undefined;
+    
+    if (user.role) {
+      role = typeof user.role === 'string' ? user.role : user.role;
+    } else if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
+      // Handle both string array and object array
+      const firstRole = user.roles[0];
+      role = typeof firstRole === 'string' ? firstRole : (firstRole as any)?.name || firstRole;
+    }
+    
+    if (!role) {
+      console.warn('User has no role:', user);
+      return 'No Role';
+    }
+    
+    // If user has a parent_id and role is 'visitor', they are a "Visitor Member User"
+    if (role === 'visitor' && user.parent_id) {
+      return 'Visitor Member User';
+    }
+    
+    // Format role names
+    const roleMap: { [key: string]: string } = {
+      'public': 'Public User',
+      'visitor': 'Visitor User',
+      'super_admin': 'Super Admin',
+    };
+    
+    return roleMap[role] || role.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ') + ' User';
   };
 
   if (loading && users.length === 0) {
@@ -340,17 +372,9 @@ const UserManagement: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-1">
                       <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
-                      {user.email_verified_at ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                          <XCircle className="h-3 w-3 mr-1" />
-                          Unverified
-                        </Badge>
-                      )}
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {formatRoleName(user)}
+                      </Badge>
                     </div>
                     
                     <div className="flex items-center space-x-6 text-sm text-gray-500">
@@ -372,6 +396,11 @@ const UserManagement: React.FC = () => {
                         </div>
                       )}
                     </div>
+                    {!user.email_verified_at && (
+                      <p className="text-xs text-gray-400 mt-1 italic">
+                        Email verification pending - planned for next phase
+                      </p>
+                    )}
                   </div>
                 </div>
                 

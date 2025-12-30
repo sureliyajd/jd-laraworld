@@ -32,6 +32,29 @@ This showcase is designed to demonstrate expertise in:
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+
+| Landing Page | Task Management | User Management |
+|:------------:|:--------------:|:---------------:|
+| <img src="docs/screenshots/welcome.png" alt="Welcome Page" width="100%"> | <img src="docs/screenshots/task-management.png" alt="Task Management" width="100%"> | <img src="docs/screenshots/user-management.png" alt="User Management" width="100%"> |
+| **Welcome Page** - Modern landing page with feature highlights | **Task Management** - Full-featured task tracking system | **User Management** - Complete user administration |
+
+| Mail Command Center | Infrastructure Gallery | Unit Testing |
+|:-------------------:|:---------------------:|:------------:|
+| <img src="docs/screenshots/mail-command.png" alt="Mail Command Center" width="100%"> | <img src="docs/screenshots/infra-gallery.png" alt="Infrastructure Gallery" width="100%"> | <img src="docs/screenshots/unit-testing.png" alt="Unit Testing" width="100%"> |
+| **Mail Command Center** - Email management & tracking | **Infrastructure Gallery** - DevOps & CI/CD showcase | **Unit Testing** - Comprehensive test coverage |
+
+| Task Details | Real-Time Notifications |
+|:------------:|:----------------------:|
+| <img src="docs/screenshots/task-card.png" alt="Task Details" width="100%"> | <img src="docs/screenshots/notification-popup.png" alt="Notifications" width="100%"> |
+| **Task Details** - Detailed task view with attachments | **Real-Time Notifications** - Live updates via WebSocket |
+
+</div>
+
+---
+
 ## ✨ Key Features
 
 ### 🔐 **Authentication & Authorization**
@@ -56,12 +79,22 @@ This showcase is designed to demonstrate expertise in:
 - Category organization
 - Task statistics and analytics
 
+<div align="center">
+  <img src="docs/screenshots/task-management.png" alt="Task Management" width="600">
+  <p><em>Task Management Dashboard with Statistics & Filters</em></p>
+</div>
+
 ### 👥 **User Management**
 - Complete user CRUD operations
 - Role assignment and permission management
 - User statistics and activity tracking
 - Task statistics per user
 - Credit management for visitors
+
+<div align="center">
+  <img src="docs/screenshots/user-management.png" alt="User Management" width="600">
+  <p><em>User Management Interface with Role-Based Access</em></p>
+</div>
 
 ### 📧 **Mail Command Center**
 - Send emails with HTML and plain text support
@@ -70,6 +103,11 @@ This showcase is designed to demonstrate expertise in:
 - Mailer configuration management
 - Email statistics dashboard
 - Test mailer functionality
+
+<div align="center">
+  <img src="docs/screenshots/mail-command.png" alt="Mail Command Center" width="600">
+  <p><em>Email Management Dashboard with Statistics & Logs</em></p>
+</div>
 
 ### ⚡ **Advanced Laravel Features**
 - **Jobs & Queues** - Asynchronous task processing
@@ -84,17 +122,32 @@ This showcase is designed to demonstrate expertise in:
 - CI/CD pipeline information
 - DevOps best practices demonstration
 
+<div align="center">
+  <img src="docs/screenshots/infra-gallery.png" alt="Infrastructure Gallery" width="600">
+  <p><em>DevOps & Infrastructure Configuration Showcase</em></p>
+</div>
+
 ### 📊 **Real-Time Updates**
 - Live notifications via WebSocket
 - Toast alerts for instant feedback
 - Notification center with filtering
 - Real-time task updates
 
+<div align="center">
+  <img src="docs/screenshots/notification-popup.png" alt="Real-Time Notifications" width="600">
+  <p><em>Real-Time Notification Center with Live Updates</em></p>
+</div>
+
 ### 🧪 **Comprehensive Testing**
 - **71+ Unit Tests** with **88%+ Code Coverage**
 - Feature testing for critical workflows
 - API endpoint testing
 - Model and service layer testing
+
+<div align="center">
+  <img src="docs/screenshots/unit-testing.png" alt="Unit Testing Showcase" width="600">
+  <p><em>Comprehensive Unit Testing Dashboard with Test Coverage</em></p>
+</div>
 
 ---
 
@@ -499,6 +552,11 @@ jd-laraworld/
 3. Upload attachments (images, documents)
 4. Add comments and track progress
 5. Real-time updates via WebSocket
+
+<div align="center">
+  <img src="docs/screenshots/task-card.png" alt="Task Details Modal" width="600">
+  <p><em>Detailed Task View with Attachments & Assignments</em></p>
+</div>
 
 ### 📧 Email System Flow
 1. Configure mailer (SMTP, Mailgun, etc.)

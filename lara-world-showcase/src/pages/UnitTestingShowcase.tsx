@@ -630,27 +630,27 @@ const UnitTestingShowcase: React.FC = () => {
                 {testSuites.map((suite) => (
                   <Card
                     key={suite.name}
-                    className={`border-2 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br ${suite.color} bg-opacity-10`}
+                    className="border-2 border-primary/20 hover:shadow-lg hover:border-primary/40 transition-all cursor-pointer bg-card"
                     onClick={() => setSelectedSuite(suite.name)}
                   >
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <div className={`p-2 rounded-lg bg-gradient-to-r ${suite.color} text-white`}>
+                      <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                        <div className="p-2 rounded-lg bg-primary text-primary-foreground">
                           {suite.icon}
                         </div>
-                        <span>{suite.name}</span>
-                        <Badge className="ml-auto bg-green-600">
+                        <span className="text-foreground">{suite.name}</span>
+                        <Badge className="ml-auto bg-green-600 text-white">
                           {suite.passedTests}/{suite.totalTests}
                         </Badge>
                       </CardTitle>
-                      <CardDescription className="text-sm">
+                      <CardDescription className="text-sm text-muted-foreground">
                         {suite.description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Coverage:</span>
-                        <Badge variant="outline" className="font-bold">
+                        <Badge variant="outline" className="font-bold text-foreground">
                           {suite.coverage}
                         </Badge>
                       </div>
@@ -669,12 +669,12 @@ const UnitTestingShowcase: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex flex-col md:flex-row items-start md:items-center gap-3">
                   <div className="flex items-center gap-3 flex-1">
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${suite.color} text-white flex-shrink-0`}>
+                    <div className="p-2 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
                       {suite.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xl md:text-2xl break-words">{suite.name} Tests</div>
-                      <CardDescription className="text-sm md:text-base mt-1 break-words">
+                      <div className="text-xl md:text-2xl break-words text-foreground">{suite.name} Tests</div>
+                      <CardDescription className="text-sm md:text-base mt-1 break-words text-muted-foreground">
                         {suite.description}
                       </CardDescription>
                     </div>
@@ -684,7 +684,7 @@ const UnitTestingShowcase: React.FC = () => {
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       {suite.passedTests}/{suite.totalTests} Passed
                     </Badge>
-                    <Badge variant="outline" className="font-bold whitespace-nowrap">
+                    <Badge variant="outline" className="font-bold whitespace-nowrap text-foreground">
                       {suite.coverage} Coverage
                     </Badge>
                   </div>

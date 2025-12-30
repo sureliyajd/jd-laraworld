@@ -5,6 +5,14 @@ import { Link } from "react-router-dom";
 import { CONTACT_CONFIG } from "@/config/contact";
 
 export const Hero = () => {
+  const scrollToFeatures = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const featuresElement = document.getElementById('features');
+    if (featuresElement) {
+      featuresElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <section className="section-shell relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-subtle">
       <div className="pointer-events-none absolute inset-0">
@@ -86,11 +94,14 @@ export const Hero = () => {
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-base border-2 hover:border-primary/50 hover:shadow-sm">
-              <a href="#features" className="inline-flex items-center gap-2">
-                <Zap className="h-5 w-5" />
-                <span>Explore Features</span>
-              </a>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-base border-2 hover:border-primary/50 hover:shadow-sm"
+              onClick={scrollToFeatures}
+            >
+              <Zap className="h-5 w-5" />
+              <span>Explore Features</span>
             </Button>
           </motion.div>
 

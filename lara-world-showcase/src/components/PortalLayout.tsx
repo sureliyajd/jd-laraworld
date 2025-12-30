@@ -68,12 +68,13 @@ const PortalLayoutContent = () => {
       icon: Server,
       requiredPermission: null, // Always visible (or add specific permission)
     },
-    {
-      title: "Log Horizon",
-      url: "/portal/logs",
-      icon: Activity,
-      requiredPermission: null, // Always visible (or add specific permission)
-    },
+    // Temporarily hidden - Log Horizon tab
+    // {
+    //   title: "Log Horizon",
+    //   url: "/portal/logs",
+    //   icon: Activity,
+    //   requiredPermission: null, // Always visible (or add specific permission)
+    // },
     {
       title: "Unit Testing",
       url: "/portal/tests",
